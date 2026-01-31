@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { SearchOutlined, LeftOutlined, RightOutlined  } from '@ant-design/icons';
+import { SearchOutlined, LeftOutlined, RightOutlined, HomeOutlined  } from '@ant-design/icons';
 import { NAV_ITEMS } from './SiderbarData'; // 导入配置
 import { SidebarItem } from './SidebarItem'; // 导入零件
 import LoginModal from '../User/LoginModal';
@@ -31,7 +31,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
     if (pathname === path) return;
     router.push(path);
     // 如果没登录且点击了受限区域，弹出登录
-    if (path !== '/search' && path !== '/' && !isLoggedIn) {
+    if (path !== '/private' && path !== '/' && !isLoggedIn) {
       setIsLoginModalOpen(true);
     }
   };
@@ -66,9 +66,13 @@ return (
             )}
           </div>
 
-          <button onClick={() => handleNavClick('/')} className="w-full h-10 bg-primary text-white rounded-xl flex items-center justify-center">
+          <button onClick={() => handleNavClick('/private')} className="w-full h-10 bg-primary text-white rounded-xl flex items-center justify-center">
             <SearchOutlined className={collapsed ? 'text-xl' : 'text-lg mr-2'} />
             {!collapsed && <span>学术搜索</span>}
+          </button>
+          <button onClick={() => handleNavClick('/')} className="w-full h-10 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl flex items-center justify-center mt-2 transition-colors">
+            <HomeOutlined className={collapsed ? 'text-xl' : 'text-lg mr-2'} />
+            {!collapsed && <span>返回大主页</span>}
           </button>
         </div>
 

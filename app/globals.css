@@ -5,6 +5,17 @@
   --color-primary: #1a5c3a; /* PDF source: 10 - 深绿色 */
   --color-primary-hover: #166534; /* PDF source: 10 - 渐变起始 */
   --color-primary-active: #14532d; /* PDF source: 10 - 渐变结束 */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #1a5c3a;
+  --color-primary-600: #166534;
+  --color-primary-700: #14532d;
+  --color-primary-800: #0f4024;
+  --color-primary-900: #052e16;
+  --color-accent: #1a5c3a;
 }
 
 /* Ant Design 样式覆盖 (如果需要匹配 Tailwind 变量) */
@@ -42,4 +53,129 @@
 
 body {
   @apply bg-white text-gray-800;
+}
+
+/* ========== Large Page Styles (from ai-platform) ========== */
+
+.gradient-text {
+  background: linear-gradient(135deg, #1a5c3a 0%, #166534 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(26, 92, 58, 0.15);
+}
+
+.nav-item {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #1a5c3a, #166534);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #1a5c3a 0%, #166534 50%, #14532d 100%);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.search-input {
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(26, 92, 58, 0.2);
+}
+
+.floating-btn {
+  position: fixed;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1);
+}
+
+.sidebar-tool {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+  padding: 12px 8px;
+  z-index: 50;
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
