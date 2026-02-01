@@ -4,12 +4,14 @@
 
 'use client';
 import Sidebar from '@/components/private/siderbar/Sidebar'; 
-import { LayoutProvider, useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/context/LayoutContext'; // 仅引入钩子
 import { ConfigProvider } from 'antd';
 
 // 左右排版的容器
 function MainFrame({ children }: { children: React.ReactNode }) {
-  const { collapsed, setCollapsed } = useLayout();
+  // 从全局管家直接获取状态，不再依赖父组件传参
+  const { collapsed } = useLayout();
+
   return (
     <ConfigProvider theme={{ 
       token: {
@@ -38,11 +40,9 @@ function MainFrame({ children }: { children: React.ReactNode }) {
       },
      }}
     >
-      <div className="flex h-screen w-full overflow-hidden bg-white">
-        {/* 侧边栏：只负责看，不负责管逻辑 */}
-        <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
-        {/* 主内容区：只负责滚动和边距 */}
-        {/* 注意：这里的 margin 逻辑会根据侧边栏宽度动态变化 */}
+<div className="flex h-screen w-full overflow-hidden bg-white">
+        {/* 核心修改：Sidebar 内部现在会自己 handle 逻辑，不需要传 props */}
+        <Sidebar />
         <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'} bg-mesh-green overflow-y-auto`}>
           {children}
         </main>
@@ -54,8 +54,6 @@ function MainFrame({ children }: { children: React.ReactNode }) {
 // 导出最终布局
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <LayoutProvider>
       <MainFrame>{children}</MainFrame>
-    </LayoutProvider>
   );
 }
