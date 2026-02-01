@@ -16,5 +16,5 @@ export const NAV_ITEMS = [
   { id: 'highlights', label: '亮点', icon: <StarOutlined />, path: '/idea' },
   { id: 'tree', label: '溯源树', icon: <ApartmentOutlined />, path: '/tree' },
   { id: 'knowledge', label: '知识库', icon: <DatabaseOutlined />, path: '/knowledge' },
-  { id: 'resource', label:'资源中心', icon:<ProductOutlined />, path:'/resource'},
+  { id: 'resources', label:'资源中心', icon:<ProductOutlined />, path:'/resources'},
 ];
