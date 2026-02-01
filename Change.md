@@ -89,12 +89,12 @@ components/
        ├── SidebarItem.tsx   # 侧边栏项目
        └── SiderbarData.tsx  # 侧边栏数据
 ```
-4. context/ 目录
+4. context/ 目录✨
 ```bash
 context/
 └── LayoutContext.tsx    # 全局状态管理 Context
 ```
-5. public/ 目录✨
+5. public/ 目录
 ```bash
 public/
 └── favicon.svg          # 网站图标
