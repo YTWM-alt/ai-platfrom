@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ConfigProvider } from 'antd';
 import { ClockCircleOutlined, ReadOutlined } from '@ant-design/icons';
-import { FeatureHeader } from '@/components/private/FeatureHeader';
+import { FeatureHeader } from '@/components/pages/common/FeatureHeader';
 import { FileUploader } from '@/components/pages/reading/FileUploader';
 
 export default function AIReaderPage() {
