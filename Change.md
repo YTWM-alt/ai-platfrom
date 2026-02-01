@@ -17,8 +17,10 @@
 
 
 ## 项目结构
+智协平台ICP-Intelligent Collaboration Platform
 1. 项目根目录
-智协平台ICP-Intelligent Collaboration Platform/
+```bash
+ICP/
 ├── app/                 # Next.js App Router 目录
 ├── components/          # React 组件目录
 ├── context/             # React Context 目录
@@ -31,8 +33,9 @@
 ├── package.json         # 项目依赖和脚本
 ├── postcss.config.mjs   # PostCSS 配置
 └── tsconfig.json        # TypeScript 配置
-
+```
 2. app/ 目录✨
+```bash
 app/
 ├── (large)/             # **大页面分组**
 │   ├── layout.tsx       # 大页面布局
@@ -54,8 +57,9 @@ app/
 │   └── layout.tsx       # 主要布局（左右结构）
 ├── globals.css          # 全局样式
 └── layout.tsx           # 整体/根布局
-
+```
 3. components/ 目录✨
+```bash
 components/
 ├── User/                # 用户相关组件
 │   ├── ClientWrapper.tsx   # 客户端包装器
@@ -84,15 +88,17 @@ components/
        ├── Sidebar.tsx       # 侧边栏主组件
        ├── SidebarItem.tsx   # 侧边栏项目
        └── SiderbarData.tsx  # 侧边栏数据
-
+```
 4. context/ 目录
+```bash
 context/
 └── LayoutContext.tsx    # 全局状态管理 Context
-
+```
 5. public/ 目录✨
+```bash
 public/
 └── favicon.svg          # 网站图标
-
+```
 ## 项目技术栈
 ### 核心框架
 - Next.js : 16.1.6（最新版本）
