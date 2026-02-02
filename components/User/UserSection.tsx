@@ -45,9 +45,9 @@ export const UserSection = ({ collapsed }: { collapsed: boolean }) => {
   const popoverContent = (
     <div className="w-52 py-0.5">
       <div className="flex items-center gap-3 px-3 py-3 bg-gray-50/50 rounded-lg mb-1.5">
-        <Avatar size={44} src={userInfo.avatar} icon={<UserOutlined />} className="border border-gray-200! text-primary! bg-white!" />
+        <Avatar size={40} src={userInfo.avatar} icon={<UserOutlined />} className="border border-gray-200! text-primary! bg-white!" />
         <div className="flex flex-col overflow-hidden">
-          <span className="text-[15px] font-bold text-gray-800 truncate leading-tight">
+          <span className="text-[14px] font-bold text-primary-900 truncate leading-tight">
             {userInfo.name}
           </span>
           <span className="text-[11px] text-gray-400">正式版用户 · ID: 2026</span>
@@ -126,7 +126,7 @@ export const UserSection = ({ collapsed }: { collapsed: boolean }) => {
           ${collapsed ? 'justify-center mx-auto' : 'gap-3'}
         `}>
           <Avatar 
-            size={collapsed ? 36 : 40} 
+            size={collapsed ? 34 : 36} 
             src={userInfo.avatar}
             icon={<UserOutlined />} 
             className="bg-white! text-primary! shrink-0 border-2 border-gray-200! shadow-sm"
@@ -134,12 +134,12 @@ export const UserSection = ({ collapsed }: { collapsed: boolean }) => {
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <span className="text-sm font-semibold text-gray-800 truncate leading-tight">
+                <span className="text-sm font-semibold text-primary-900 truncate leading-tight">
                   {userInfo.name}
                 </span>
                 <span className="text-[10px] text-gray-400 font-medium">正式版用户</span>
               </div>
-              <SettingOutlined className="text-gray-300 group-hover:text-primary transition-all text-[17px]" />
+              <SettingOutlined className="text-gray-300 group-hover:text-primary transition-all text-[15px]" />
             </>
           )}
         </div>
