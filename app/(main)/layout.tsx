@@ -5,7 +5,7 @@
 'use client';
 import Sidebar from '@/components/private/siderbar/Sidebar'; 
 import { useLayout } from '@/context/LayoutContext'; // 仅引入钩子
-import { ConfigProvider } from 'antd';
+import { App, ConfigProvider } from 'antd';
 
 // 左右排版的容器
 function MainFrame({ children }: { children: React.ReactNode }) {
@@ -40,13 +40,15 @@ function MainFrame({ children }: { children: React.ReactNode }) {
       },
      }}
     >
-<div className="flex h-screen w-full overflow-hidden bg-white">
-        {/* 核心修改：Sidebar 内部现在会自己 handle 逻辑，不需要传 props */}
-        <Sidebar />
-        <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'} bg-mesh-green overflow-y-auto`}>
-          {children}
-        </main>
-      </div>
+      <App>
+        <div className="flex h-screen w-full overflow-hidden bg-white">
+          {/* 核心修改：Sidebar 内部现在会自己 handle 逻辑，不需要传 props */}
+          <Sidebar />
+          <main className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-56'} bg-mesh-green overflow-y-auto`}>
+            {children}
+          </main>
+        </div>
+      </App>
     </ConfigProvider>
   );
 }
