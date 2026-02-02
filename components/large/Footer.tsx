@@ -10,7 +10,7 @@ export default function Footer() {
           {/* Logo & Description */}
           <div className="col-span-1">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary-500 to-primary-700 flex items-center justify-center">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>

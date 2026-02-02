@@ -22,7 +22,7 @@ export const SidebarItem = ({ item, collapsed, isActive, onClick }: NavButtonPro
         onClick={onClick}
         className={`
           w-full flex items-center transition-all duration-200
-          text-[15px] py-2 rounded-lg group
+          text-[14px] py-2 rounded-lg group
           ${collapsed ? 'justify-center px-0' : 'px-3 gap-3'}
           ${isActive ? 'bg-[#eafdf0f7]! text-primary! font-bold' : 'text-gray-600 hover:text-primary'}
         `}

@@ -1,5 +1,5 @@
 'use client';
-import { Upload, message } from 'antd';
+import { Upload, App } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload/interface';
 import { useLayout } from '@/context/LayoutContext';
 
@@ -13,6 +13,7 @@ interface BaseUploaderProps {
 }
 
 export const BaseUploader = ({ onSuccess, accept = "image/*", children, className }: BaseUploaderProps) => {
+  const { message } = App.useApp();
   const { isLoggedIn, setIsLoginModalOpen } = useLayout();
 
   const handleBeforeUpload: UploadProps['beforeUpload'] = (file: RcFile) => {

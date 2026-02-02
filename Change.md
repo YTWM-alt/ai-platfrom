@@ -9,12 +9,16 @@
 - 组件整合及位置变动
 - 链接两页的部分跳转
 - 统一两页的登录界面样式及状态
-- 个人页面优化：
-    - 用户登录/登出样式
-    - 侧边导航栏折叠时图标的居中
-    - 新增学术搜索页（个人页面的默认页）图片上传界面
-    - 稍微整理了一下个人页面的css
+- 个人页面优化用户登录/登出样式、侧边导航栏图标折叠居中
+- 新增学术搜索页（个人页面的默认页）图片上传弹窗
+- 稍微整理了一下个人页面的css
 
+3. 记录3
+- 新增知识库页面及其组件
+
+4. 记录4
+- 优化两个导航栏的样式及排版间隔逻辑
+- 复用及新建组件修改了上传PDF按钮和创建笔记按钮
 
 ## 项目结构
 智协平台ICP-Intelligent Collaboration Platform
@@ -48,7 +52,7 @@ app/
 │   │   ├── knowledge/   # 知识库相关页面
 │   │   ├── library/     # AI文库相关页面
 │   │   ├── reading/     # AI阅读相关页面
-│   │   ├── resource/    # 资源中心相关页面
+│   │   ├── resources/    # 资源中心相关页面
 │   │   ├── thinking/    # 沉思相关页面
 │   │   ├── tree/        # 溯源树相关页面
 │   │   └── writing/     # AI写作相关页面
@@ -76,6 +80,10 @@ components/
 │   ├── common/                  # 通用组件
 │   │   ├── BaseUploader.tsx    # 基础上传组件
 │   │   └── FeatureHeader.tsx   # 功能头部
+│   ├── knowledge/          # 知识库相关组件
+│   │   ├── KnowledgeContent.tsx   # 知识库内容
+│   │   ├── KnowledgeSidebar.tsx   # 知识库侧边栏
+│   │   └── NoteUploadModal.tsx    # 笔记上传弹窗
 │   ├── reading/         # AI阅读页面组件
 │   │   └── FileUploader.tsx  # 文件上传器
 │   └── search/          # 学术搜索页面组件

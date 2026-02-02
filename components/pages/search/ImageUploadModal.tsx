@@ -52,7 +52,7 @@ export const ImageUploadModal = ({ open, onClose, onUploadSuccess }: ImageUpload
           <div className="
             flex flex-col items-center justify-center py-6 px-6 cursor-pointer 
             border border-dashed border-primary/40! rounded-2xl
-            hover:border-primary! hover:bg-primary-50/30! transition-all
+            hover:border-primary! hover:bg-gray-50 transition-all
           ">
             <CloudUploadOutlined className="text-4xl text-primary/80! mb-3" />
             <p className="text-gray-600 font-medium text-[15px] mb-1">拖拽、Ctrl + V 粘贴图片至此</p>
