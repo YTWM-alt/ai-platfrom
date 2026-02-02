@@ -179,3 +179,63 @@ body {
     transform: translateY(0);
   }
 }
+
+/* 统一处理模型选择下拉框(ModelSelect)样式 */
+.model-select-dropdown {
+  /* 列表项圆角与边距 */
+  & .ant-select-item {
+    margin: 4px 6px !important;
+    border-radius: 8px !important;
+    min-height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* 默认文字颜色 */
+  & .ant-select-item-option-content {
+    color: #4b5563 !important;
+    font-size: 14px !important;
+  }
+
+  /* 悬停态背景 */
+  & .ant-select-item-option-active {
+    background-color: var(--color-primary-50) !important;
+  }
+
+  /* 选中态样式：文字变绿，背景透明 (解决你看到的灰色块问题) */
+  & .ant-select-item-option-selected {
+    background-color: transparent !important; /* 关键：移除选中时的背景色 */
+    color: var(--color-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* 联网/离线Switch (ModeSelector) */
+.custom-compact-switch.ant-switch {
+  min-width: 54px !important; /* 锁定 54px 宽度，解决离线飞出去的问题 */
+  height: 20px !important;
+  background-color: #cbd5e1 !important;
+  border: none !important;
+}
+
+.custom-compact-switch.ant-switch-checked {
+  background-color: var(--color-primary) !important;
+}
+
+/* 滑块圆点：稍微调小 1px，能让整体看起来更精致，不挤文字 */
+.custom-compact-switch .ant-switch-handle {
+  width: 14px !important;
+  height: 14px !important;
+  top: 3px !important;
+  z-index: 1 !important; /* 确保它在文字层下方 */
+}
+
+/* 选中态圆点：精准靠右 */
+.custom-compact-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 17px) !important;
+}
+
+/* 彻底关闭 Antd 的内部占位 */
+.custom-compact-switch .ant-switch-inner {
+  display: none !important;
+}

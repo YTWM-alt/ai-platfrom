@@ -24,6 +24,7 @@ const features = [
     bgColor: 'bg-purple-50',
     tags: ['论文写作', '智能润色', '文案生成'],
     isNew: false,
+    href: '/writing',
   },
   {
     id: 'drawing',
@@ -34,6 +35,7 @@ const features = [
     bgColor: 'bg-orange-50',
     tags: ['图像生成', '风格迁移', '创意设计'],
     isNew: true,
+    href: '/drawing',
   },
   {
     id: 'code',
@@ -44,6 +46,7 @@ const features = [
     bgColor: 'bg-green-50',
     tags: ['代码生成', '代码优化', '调试助手'],
     isNew: true,
+    href: '/code',
   },
 ]
 
@@ -79,7 +82,7 @@ export default function FeatureCards() {
 
               {/* Icon */}
               <div className={`w-14 h-14 rounded-2xl ${feature.bgColor} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
-                <feature.icon className={`w-7 h-7 bg-gradient-to-br ${feature.color} bg-clip-text`} style={{ color: feature.color.includes('blue') ? '#3b82f6' : feature.color.includes('purple') ? '#8b5cf6' : feature.color.includes('orange') ? '#f97316' : '#10b981' }} />
+                <feature.icon className={`w-7 h-7 bg-linear-to-br ${feature.color} bg-clip-text`} style={{ color: feature.color.includes('blue') ? '#3b82f6' : feature.color.includes('purple') ? '#8b5cf6' : feature.color.includes('orange') ? '#f97316' : '#10b981' }} />
               </div>
 
               {/* Content */}
