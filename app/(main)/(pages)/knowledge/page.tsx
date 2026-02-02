@@ -1,10 +1,21 @@
+'use client';
+import { useState } from 'react';
+import KnowledgeSidebar from '@/components/pages/knowledge/KnowledgeSidebar';
+import KnowledgeContent from '@/components/pages/knowledge/KnowledgeContent';
+
 export default function KnowledgePage() {
+  const [activeItem, setActiveItem] = useState('all-docs');
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">知识库</h1>
-      <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100 h-96 flex items-center justify-center text-gray-400">
-        这里是知识库内容区域
-      </div>
+    // h-full 填满父容器高度; bg-white 覆盖底部默认绿色背景色
+    <div className="flex h-full w-full bg-white overflow-hidden">
+      {/* 中间栏 - 功能选择 */}
+      <KnowledgeSidebar 
+        activeItem={activeItem} 
+        onItemSelect={setActiveItem} 
+      />
+      {/* 右侧内容区 */}
+      <KnowledgeContent activeItem={activeItem} />
     </div>
   );
 }
