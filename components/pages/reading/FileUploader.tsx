@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from 'antd';
 import { UploadOutlined, LayoutOutlined } from '@ant-design/icons';
 import { BaseUploader } from '@/components/pages/common/BaseUploader';
