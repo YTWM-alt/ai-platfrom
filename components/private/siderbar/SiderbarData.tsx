@@ -14,7 +14,7 @@ export const NAV_ITEMS : NavItem[] = [
   { id: 'code', label: 'AI代码', icon: <CodeOutlined />, path: '/code' },
   { id: 'thinking', label: '沉思', icon: <BulbOutlined />, path: '/thinking' },
   { id: 'highlights', label: '亮点', icon: <StarOutlined />, path: '/idea' },
-  { id: 'tree', label: '溯源树', icon: <ApartmentOutlined />, path: '/tree' },
+  { id: 'graph', label: '关联图', icon: <ApartmentOutlined />, path: '/graph' },
   { id: 'knowledge', label: '知识库', icon: <DatabaseOutlined />, path: '/knowledge' },
   { id: 'resources', label:'资源中心', icon:<ProductOutlined />, path:'/resources'},
 ];

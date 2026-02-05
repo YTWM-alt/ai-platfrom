@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import ReactFlow, { 
   Background, 
   MiniMap, 
@@ -11,7 +11,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import { Paper } from '@/types/pages/paper';
-import { TreeNode, TreeEdge, TreeNodeData } from '@/types/pages/tree';
+import { GraphNode, GraphEdge, GraphNodeData } from '@/types/pages/graph';
 import { Plus, Minus, Maximize, Lock, LockOpen, HelpCircle, X } from 'lucide-react';
 
 interface FlowCanvasProps {
@@ -24,11 +24,11 @@ export default function FlowCanvas({ papers, onNodeClick }: FlowCanvasProps) {
   const [isLocked, setIsLocked] = useState(false);
   const { zoomIn, zoomOut, fitView } = useReactFlow(); 
 
-  // TreeNode[] 严格定义节点数组
-  const nodes: TreeNode[] = useMemo(() => {
+  // GraphNode[] 严格定义节点数组
+  const nodes: GraphNode[] = useMemo(() => {
     return papers.map((p, i) => ({
       id: p.id,
-      // 必须符合 tree.ts 中 TreeNodeData 的定义
+      // 必须符合 graph.ts 中 GraphNodeData 的定义
       data: { 
         label: p.title,
         paper: p, // 将完整数据存入节点
@@ -55,8 +55,8 @@ export default function FlowCanvas({ papers, onNodeClick }: FlowCanvasProps) {
     }));
   }, [papers]);
 
-  //  TreeEdge[] 定义连线
-  const edges: TreeEdge[] = useMemo(() => {
+  //  GraphEdge[] 定义连线
+  const edges: GraphEdge[] = useMemo(() => {
     return papers.slice(1).map((p) => ({
       id: `e-${p.id}`, 
       source: papers[0].id, 
@@ -68,7 +68,7 @@ export default function FlowCanvas({ papers, onNodeClick }: FlowCanvasProps) {
   // 处理点击事件：直接从节点数据中获取 paper 对象
   const handleNodeClick: NodeMouseHandler = (_, node) => {
     // node 类型自动推断为 Node，通过类型断言确保安全
-    const nodeData = node.data as TreeNodeData;
+    const nodeData = node.data as GraphNodeData;
     if (nodeData.paper) {
       onNodeClick(nodeData.paper);
     }

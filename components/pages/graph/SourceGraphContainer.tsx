@@ -7,7 +7,7 @@ import SidebarRight from './SidebarRight';
 import { Paper } from '@/types/pages/paper';
 import { CaretRightOutlined, CaretLeftOutlined } from '@ant-design/icons';
 
-export default function SourceTreeContainer() {
+export default function SourceGraphContainer() {
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
