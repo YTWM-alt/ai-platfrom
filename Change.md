@@ -25,12 +25,11 @@
 - 提升组件复用性，减少代码冗余
 
 ### 记录5 - 关联图功能与类型系统优化
-- 溯源树改名，新增关联图功能页面
-- 集成ReactFlow组件库实现论文引用关系可视化
-- 新增阅读页面上下文（ReadingContext.tsx）用于状态管理
-- 新增types目录统一管理TypeScript类型接口
-- 优化项目整体架构，明确功能模块划分
-- 更新项目依赖，引入ReactFlow 11.11.4
+- 更新项目依赖，溯源树改名，新增关联图功能页面（ReactFlow实现）
+- 新增阅读页面上下文用于状态管理
+- 新增历史记录页面及其组件并复用（阅读与搜索页）
+- 新增整理types目录及部分TypeScript类型接口
+- 优化项目部分架构逻辑与结构
 
 
 ## 项目结构
@@ -66,13 +65,13 @@ app/
 │   │   ├── idea/        # 亮点相关页面
 │   │   ├── knowledge/   # 知识库相关页面
 │   │   ├── library/     # AI文库相关页面
-│   │   ├── reading/     # AI阅读相关页面
+│   │   ├── reading/     # AI阅读相关页面✨
 │   │   ├── resources/   # 资源中心相关页面
 │   │   ├── thinking/    # 沉思相关页面
-│   │   ├── graph/       # 关联图相关页面（ReactFlow）
+│   │   ├── graph/       # 关联图相关页面（ReactFlow）✨
 │   │   └── writing/     # AI写作相关页面
 │   ├── private/         # 个人页面（学术搜索）
-│   │   └── page.tsx     # 个人页面首页
+│   │   └── page.tsx     # 个人页面首页✨
 │   └── layout.tsx       # 主要布局（左右结构）
 ├── globals.css          # 全局样式
 └── layout.tsx           # 整体/根布局
@@ -95,7 +94,9 @@ components/
 ├── pages/               # 主要页面组件
 │   ├── common/                  # 通用组件
 │   │   ├── BaseUploader.tsx    # 基础上传组件
-│   │   └── FeatureHeader.tsx   # 功能头部
+│   │   ├── FeatureHeader.tsx   # 功能头部
+│   │   ├── HistorySidebar.tsx  # 历史记录侧边栏✨
+│   │   └── HistoryTrigger.tsx  # 历史记录触发器✨
 │   ├── knowledge/          # 知识库相关组件
 │   │   ├── KnowledgeContent.tsx   # 知识库内容
 │   │   ├── KnowledgeSidebar.tsx   # 知识库侧边栏
@@ -107,7 +108,7 @@ components/
 │   │   ├── ModeSelector.tsx     # 搜索模式选择器
 │   │   ├── ModelSelect.tsx      # 模型选择器
 │   │   └── SearchBox.tsx        # 搜索框
-│   └── graph/            # 关联图相关组件
+│   └── graph/            # 关联图相关组件✨
 │       ├── FlowCanvas.tsx       # ReactFlow画布
 │       ├── SidebarLeft.tsx      # 左侧边栏
 │       ├── SidebarRight.tsx     # 右侧边栏
@@ -121,19 +122,21 @@ components/
 
 ### 4. context/ 目录
 ```bash
-context/
+context/✨
 ├── LayoutContext.tsx    # 全局布局状态管理 Context
-└── ReadingContext.tsx   # 阅读页面状态管理 Context
+├── ReadingContext.tsx   # 阅读页面状态管理 Context
+└── HistoryContext.tsx   # 历史记录状态管理 Context
 ```
 
 ### 5. types/ 目录
 ```bash
-types/
+types/✨
 └── pages/               # 页面相关类型定义
+    ├── graph.ts         # 关联图类型
+    ├── history.ts       # 历史记录类型
     ├── paper.ts         # 论文相关类型
     ├── reading.ts       # 阅读页面类型
-    ├── search.ts        # 搜索页面类型
-    └── graph.ts          # 关联图类型
+    └── search.ts        # 搜索页面类型
 └── private/             # 个人页面相关类型
     └── sidebar.ts       # 侧边栏类型
 ```
