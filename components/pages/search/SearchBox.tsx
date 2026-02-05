@@ -1,14 +1,16 @@
 'use client';
+
 import { useState } from 'react';
 import { Input, Button } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';
 import { ImageUploadModal } from './ImageUploadModal';
 import type { RcFile } from 'antd/es/upload/interface';
+import { SearchMode, SearchRequest } from '@/types/pages/search';
 
 interface SearchBoxProps {
   value: string;
   onChange: (val: string) => void;
-  mode: 'simple' | 'smart';
+  mode: SearchMode;
   bottomExtra?: React.ReactNode;
 }
 

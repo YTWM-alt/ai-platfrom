@@ -1,17 +1,20 @@
 'use client';
+
 import { useState } from 'react';
 import { ModeSelector } from '@/components/pages/search/ModeSelector';
 import { ModelSelect } from '@/components/pages/search/ModelSelect';
 import { FeatureHeader } from '@/components/pages/common/FeatureHeader';
 import { SearchBox } from '@/components/pages/search/SearchBox';
+import { SearchMode, SearchRequest } from '@/types/pages/search';
 
 export default function SearchPage() {
-  const [mode, setMode] = useState<'simple' | 'smart'>('smart');
+  const [mode, setMode] = useState<SearchMode>('smart');
   const [isWebSearch, setIsWebSearch] = useState(true);
   const [searchValue, setSearchValue] = useState('');
 
   const handleSend = () => {
-    console.log("执行搜索:", searchValue);
+  // 未来可在这里构建符合 SearchRequest 接口的对象发给后端
+    console.log("执行搜索:", searchValue, "模式:", mode);
   };
 
   return (

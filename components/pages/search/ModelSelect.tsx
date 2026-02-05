@@ -1,18 +1,15 @@
 'use client';
-import React from 'react';
+
 import { Select } from 'antd';
 import { SendOutlined, DownOutlined } from '@ant-design/icons';
-
-interface ModelOption {
-  value: string;
-  label: string;
-}
+import { ModelOption, SearchMode } from '@/types/pages/search';
 
 interface ModelSelectProps {
   showModelSelector?: boolean;   // 是否显示模型选择器
   options?: ModelOption[];       // 模型列表
-  onSend?: () => void;           // 点击发送的回调
+  onSend?: () => void;           // 点击发送的回调       
   defaultValue?: string;
+  mode?: SearchMode;             // 如果组件需要根据模式变色，也使用全局类型 (提供思路，但暂时不需要)
 }
 
 export const ModelSelect = ({ 

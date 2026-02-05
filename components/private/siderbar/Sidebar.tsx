@@ -2,10 +2,11 @@
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { SearchOutlined, LeftOutlined, RightOutlined, HomeOutlined  } from '@ant-design/icons';
-import { NAV_ITEMS } from './SiderbarData'; 
 import { SidebarItem } from './SidebarItem'; 
 import { useLayout } from '@/context/LayoutContext';
 import { UserSection } from '@/components/User/UserSection';
+import { NavItem } from '@/types/private/sidebar';
+import { NAV_ITEMS } from './SiderbarData';
 
 export default function Sidebar() {
   const router = useRouter();
@@ -19,20 +20,25 @@ export default function Sidebar() {
     setIsLoginModalOpen 
   } = useLayout();
 
-  const handleNavClick = (path: string) => {
+  const handleNavClick = (target: NavItem | string) => {
+    const path = typeof target === 'string' ? target : target.path;
+
     if (pathname === path) return;
+    // 先执行跳转
     router.push(path);
-    // 如果没登录且点击了受限区域，弹出登录
-    if (path !== '/private' && path !== '/' && !isLoggedIn) {
+    // 再登录判断拦截
+    // 排除掉不需要登录的路径（首页和搜索页）
+    const publicPaths = ['/', '/private']; 
+    if (!publicPaths.includes(path) && !isLoggedIn) {
       setIsLoginModalOpen(true);
     }
   };
 
-return (
+  return (
     <>
      <aside className={`fixed left-0 top-0 h-screen flex flex-col border-r border-r-gray-200 bg-white! z-50 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'} sidebar-shadow`}>
         {/* 收起/展开按钮 */}
-      <div 
+      <div
         onClick={() => setCollapsed(!collapsed)} 
         className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-white border border-gray-300 rounded-full flex items-center justify-center cursor-pointer shadow-md z-60"
       >
@@ -86,7 +92,7 @@ return (
             item={item} 
             collapsed={collapsed} 
             isActive={pathname.startsWith(item.path)}
-            onClick={() => handleNavClick(item.path)}
+            onClick={() => handleNavClick(item)}
           />
         ))}
       </div>

@@ -1,14 +1,9 @@
-import React from 'react';
 import { Tooltip } from 'antd';
+import { NavItem } from '@/types/private/sidebar';
 
 // 定义具体的接口，解决 any 的报错警告
 interface NavButtonProps {
-  item: {
-    id: string;
-    label: string;
-    icon: React.ReactNode;
-    path: string;
-  };
+  item: NavItem;
   collapsed: boolean;
   isActive: boolean;
   onClick: () => void;
