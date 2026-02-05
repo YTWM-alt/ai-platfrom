@@ -24,8 +24,8 @@
 - 重构上传PDF按钮和创建笔记按钮组件
 - 提升组件复用性，减少代码冗余
 
-### 记录5 - 溯源树功能与类型系统优化
-- 新增溯源树功能页面
+### 记录5 - 关联图功能与类型系统优化
+- 溯源树改名，新增关联图功能页面
 - 集成ReactFlow组件库实现论文引用关系可视化
 - 新增阅读页面上下文（ReadingContext.tsx）用于状态管理
 - 新增types目录统一管理TypeScript类型接口
@@ -69,7 +69,7 @@ app/
 │   │   ├── reading/     # AI阅读相关页面
 │   │   ├── resources/   # 资源中心相关页面
 │   │   ├── thinking/    # 沉思相关页面
-│   │   ├── tree/        # 溯源树相关页面（ReactFlow）
+│   │   ├── graph/       # 关联图相关页面（ReactFlow）
 │   │   └── writing/     # AI写作相关页面
 │   ├── private/         # 个人页面（学术搜索）
 │   │   └── page.tsx     # 个人页面首页
@@ -107,11 +107,11 @@ components/
 │   │   ├── ModeSelector.tsx     # 搜索模式选择器
 │   │   ├── ModelSelect.tsx      # 模型选择器
 │   │   └── SearchBox.tsx        # 搜索框
-│   └── tree/            # 溯源树相关组件
+│   └── graph/            # 关联图相关组件
 │       ├── FlowCanvas.tsx       # ReactFlow画布
 │       ├── SidebarLeft.tsx      # 左侧边栏
 │       ├── SidebarRight.tsx     # 右侧边栏
-│       └── SourceTreeContainer.tsx # 溯源树容器
+│       └── SourceGraphContainer.tsx # 关联图容器
 └── private/             # 个人页面组件
     └── siderbar/        # 侧边栏相关组件
        ├── Sidebar.tsx       # 侧边栏主组件
@@ -133,7 +133,7 @@ types/
     ├── paper.ts         # 论文相关类型
     ├── reading.ts       # 阅读页面类型
     ├── search.ts        # 搜索页面类型
-    └── tree.ts          # 溯源树类型
+    └── graph.ts          # 关联图类型
 └── private/             # 个人页面相关类型
     └── sidebar.ts       # 侧边栏类型
 ```
@@ -155,7 +155,7 @@ public/
 /code                   # AI代码页
 /thinking               # 沉思页
 /idea                   # 亮点页
-/tree                   # 溯源树页（ReactFlow可视化）
+/graph                  # 关联图页（ReactFlow可视化）
 /knowledge              # 知识库页
 /resources              # 资源中心页
 ```
