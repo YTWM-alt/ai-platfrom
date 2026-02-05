@@ -1,10 +1,13 @@
+"use client";
+import { ReactFlowProvider } from 'reactflow';
+import SourceTreeContainer from '@/components/pages/tree/SourceTreeContainer';
+
+//作为入口，只负责“叫出”溯源树组件
 export default function TreePage() {
+  // 可以在这里进行服务端数据获取
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">溯源树</h1>
-      <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100 h-96 flex items-center justify-center text-gray-400">
-        这里是溯源树内容区域
-      </div>
-    </div>
+    <ReactFlowProvider>
+      <SourceTreeContainer />
+    </ReactFlowProvider>
   );
 }
