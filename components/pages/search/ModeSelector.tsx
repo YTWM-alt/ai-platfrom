@@ -1,10 +1,11 @@
 'use client';
 import { SearchOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { Switch } from 'antd';
+import { SearchMode } from '@/types/pages/search';
 
 interface ModeSelectorProps {
-  mode: 'simple' | 'smart';
-  setMode: (mode: 'simple' | 'smart') => void;
+  mode: SearchMode;
+  setMode: (mode: SearchMode) => void;
   isWebSearch: boolean;
   setIsWebSearch: (val: boolean) => void;
 }

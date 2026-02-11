@@ -1,7 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
-// 1. 定义 Context 接口
 interface LayoutContextType {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
@@ -11,26 +10,65 @@ interface LayoutContextType {
   setIsLoginModalOpen: (v: boolean) => void;
   login: () => void;
   logout: () => void;
+  favoriteIds: string[];
+  toggleFavorite: (id: string) => void;
 }
 
-const LayoutContext = createContext<LayoutContextType | null>(null);
+export const LayoutContext = createContext<LayoutContextType | null>(null);
 
 export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
+  // 使用延迟初始化，减少首屏闪烁
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isUserLoading, setIsUserLoading] = useState(true);
 
+  // 初始化逻辑
   useEffect(() => {
-    const savedStatus = localStorage.getItem('isLoggedIn') === 'true';
-    // 使用 setTimeout 避开级联渲染报错
-    setTimeout(() => {
-      setIsLoggedIn(savedStatus);
-      setIsUserLoading(false);
-    }, 0);
+    const initAuth = () => {
+      try {
+        const savedLogin = localStorage.getItem('isLoggedIn') === 'true';
+        const savedFavorites = JSON.parse(localStorage.getItem('paper_favorites') || '[]');
+        
+        setIsLoggedIn(savedLogin);
+        setFavoriteIds(savedFavorites);
+      } catch (e) {
+        console.error("Initialization failed", e);
+      } finally {
+        setIsUserLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // 多标签页同步：监听其他标签页的操作
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'isLoggedIn') setIsLoggedIn(e.newValue === 'true');
+      if (e.key === 'paper_favorites') setFavoriteIds(JSON.parse(e.newValue || '[]'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // 使用 useCallback 保证函数引用稳定
+  // 纯粹的持久化方法
+  const saveToLocalStorage = useCallback((ids: string[]) => {
+    setFavoriteIds(ids);
+    localStorage.setItem('paper_favorites', JSON.stringify(ids));
+  }, []);
+
+  // toggle逻辑复用上面的方法
+  const toggleFavorite = useCallback((id: string) => {
+    const isFavorited = favoriteIds.includes(id);
+    const next = isFavorited 
+      ? favoriteIds.filter(f => f !== id) 
+      : [...favoriteIds, id];
+    
+    saveToLocalStorage(next); // 调用统一的保存逻辑
+  }, [favoriteIds, saveToLocalStorage]);
+
   const login = useCallback(() => {
     setIsLoggedIn(true);
     localStorage.setItem('isLoggedIn', 'true');
@@ -39,15 +77,14 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(() => {
     setIsLoggedIn(false);
+    setFavoriteIds([]);
     localStorage.removeItem('isLoggedIn');
-    // 登出后重定向到主页
-    if (typeof window !== 'undefined') {
-      // window.location.href = '/'; // 退出登录则跳转为大页面
-      window.location.reload(); // 退出后仅刷新页面，清除所有状态
-    }
+    localStorage.removeItem('paper_favorites');
+    
+    // 强制刷新以清理所有 Context 状态，或者跳转
+    window.location.reload();
   }, []);
 
-  // 4. 使用 useMemo 优化 Context Value，防止不必要的全量重绘
   const contextValue = useMemo(() => ({
     collapsed,
     setCollapsed,
@@ -56,8 +93,10 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     isLoginModalOpen,
     setIsLoginModalOpen,
     login,
-    logout
-  }), [collapsed, isLoggedIn, isUserLoading, isLoginModalOpen, login, logout]);
+    logout,
+    favoriteIds,
+    toggleFavorite
+  }), [collapsed, isLoggedIn, isUserLoading, isLoginModalOpen, login, logout, favoriteIds, toggleFavorite]);
 
   return (
     <LayoutContext.Provider value={contextValue}>
@@ -68,8 +107,6 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useLayout = () => {
   const context = useContext(LayoutContext);
-  if (!context) {
-    throw new Error("useLayout 必须在 LayoutProvider 内部使用");
-  }
+  if (!context) throw new Error("useLayout must be used within LayoutProvider");
   return context;
 };

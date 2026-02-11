@@ -1,7 +1,7 @@
 // components/pages/knowledge/NoteUploadModal.tsx
 'use client';
 import { Modal, Button, Divider } from 'antd';
-import {  EditOutlined, CloudUploadOutlined } from '@ant-design/icons';
+import { EditOutlined, CloudUploadOutlined } from '@ant-design/icons';
 import { BaseUploader } from '@/components/pages/common/BaseUploader';
 import { useEffect } from 'react';
 import type { RcFile } from 'antd/es/upload/interface';

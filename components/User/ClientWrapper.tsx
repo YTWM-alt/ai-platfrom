@@ -2,6 +2,7 @@
 
 import { ConfigProvider, App as AntdApp } from 'antd';
 import { LayoutProvider, useLayout } from '@/context/LayoutContext';
+import { HistoryProvider } from '@/context/HistoryContext';
 import LoginModal from '@/components/User/LoginModal';
 
 // 内部弹窗组件
@@ -36,8 +37,10 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
       {/* 使用 AntdApp 包裹可以顺便解决 Modal.confirm 样式不跟随的问题 */}
       <AntdApp> 
         <LayoutProvider>
-          {children}
-          <GlobalLogin />
+          <HistoryProvider> 
+            {children}
+            <GlobalLogin />
+          </HistoryProvider>
         </LayoutProvider>
       </AntdApp>
     </ConfigProvider>
