@@ -8,83 +8,94 @@ import {
   CloseOutlined,
 } from '@ant-design/icons';
 
-const MOCK_LATEX_CONTENT = `\\documentclass[10pt,journal]{IEEEtran}
+const MOCK_LATEX_CONTENT = `\\documentclass[11pt,article]{article}
 
-% 1. 基础编包
+% Basic packages
+\\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\geometry{a4paper, margin=1in}
 
-% 2. 数学包组
-\\usepackage{amsmath}
+% Typography
+\\usepackage{times}
+\\usepackage{microtype}
 
-% 3. 字体配置
-\\usepackage{newtxtext}
-\\usepackage{newtxmath}
+% Code listings
+\\usepackage{listings}
+\\usepackage{xcolor}
 
-\\let\\openbox\\relax
-\\let\\proof\\relax
-\\let\\endproof\\relax
-\\usepackage{amsthm}
+% Define colors for code
+\\definecolor{codegreen}{rgb}{0,0.6,0}
+\\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
-% 4. 数学增强与加粗
-\\usepackage{amsfonts}
-\\usepackage{bm}
+% Code listing style
+\\lstdefinestyle{mystyle}{
+  backgroundcolor=\\color{backcolour},
+  commentstyle=\\color{codegreen},
+  keywordstyle=\\color{blue},
+  numberstyle=\\tiny\\color{codegray},
+  stringstyle=\\color{codepurple},
+  basicstyle=\\ttfamily\\footnotesize,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  keepspaces=true,
+  numbers=left,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2
+}
+\\lstset{style=mystyle}
 
-% 5. 算法与图形
-\\usepackage{graphicx}
-\\usepackage{subcaption}
-\\usepackage{epstopdf}
-\\usepackage{algorithm}
-\\usepackage[noend]{algpseudocode}
-
-% 6. 表格与格式
-\\usepackage{booktabs}
-\\usepackage{enumitem}
-\\usepackage{multirow}
-\\usepackage{threeparttable}
-\\usepackage{colortbl}
-\\usepackage{setspace}
-\\usepackage{multicol}
-
-% 7. 链接与 URL
-\\usepackage{url}
-\\usepackage[colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=green]{hyperref}
-
-% --- 定理类型 ---
-\\newtheorem{theorem}{Theorem}
-\\newtheorem{proposition}{Proposition}
+% Hyperlinks
+\\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
 
 \\begin{document}
 
-\\title{Breaking the Efficiency-Privacy Trade-off in\\\\
-Federated Unlearning via Subspace Decoupling}
-
-\\author{Shih He, Jiantao Cai, Jiangang Sha,\\\\
-Kao Yang, Hai Lu, Xiaohui Jia and Zhifeng Tian}
+\\title{Modern Web Development:\\\\A Comprehensive Guide to React and TypeScript}
+\\author{Technical Documentation Team}
+\\date{\\today}
 
 \\maketitle
 
 \\begin{abstract}
-Federated machine unlearning (FMU) aims to remove the influence of targeted
-data from a federated model upon request. For deep models, exact retraining is
-often prohibitively expensive, while existing approximate methods either suffer
-from slow unlearning speed, or risk compromising the retained data performance.
-To address these challenges, FARVU-S (Fisher-Aware Recovery for Verifiable
-Unlearning via Subspace) is proposed to achieve efficient and effective federated
-unlearning by retrieving the orthogonal subspace. FAR-VUS decomposes the
-model parameters into orthogonal subspaces via a cholesky-like algorithm.
+This document provides a comprehensive overview of modern web development
+practices using React and TypeScript. We explore component architecture,
+state management patterns, and best practices for building scalable applications.
+The guide covers essential concepts including hooks, context API, and performance
+optimization techniques that are crucial for developing production-ready web
+applications.
 \\end{abstract}
 
-\\section{Introduction}
+\\section{Introduction to React}
 \\label{sec:intro}
 
-FEDERATED Learning (FL) has emerged as a cornerstone of distributed machine
-learning, enabling multiple parties to collaboratively train a global model while
-keeping their raw data local~\\cite{mcmahan2017}. This paradigm effectively addresses
-the concerns of traditional centralized ML.
+React is a JavaScript library for building user interfaces, developed and
+maintained by Meta (formerly Facebook). It enables developers to create reusable
+UI components that efficiently update and render when data changes.
 
-The remainder of this paper is organized as follows: Section~\\ref{sec:method}
-describes our proposed method. Section~\\ref{sec:experiments} presents experimental
-results. Section~\\ref{sec:conclusion} concludes.
+\\subsection{Core Concepts}
+
+Component-based architecture is at the heart of React development. Each component
+encapsulates its own logic, styling, and state, making code more maintainable
+and testable.
+
+\\begin{lstlisting}[language=JavaScript,caption=Simple React Component]
+function Welcome({ name }) {
+  return <h1>Hello, {name}!</h1>;
+}
+\\end{lstlisting}
+
+\\section{TypeScript Integration}
+\\label{sec:typescript}
+
+TypeScript adds static typing to JavaScript, catching errors at compile time
+rather than runtime. When combined with React, TypeScript provides excellent
+IDE support and autocompletion.
 
 \\end{document}`;
 
@@ -98,12 +109,12 @@ interface WritingLatexEditorProps {
   activeFile?: string;
 }
 
-export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: WritingLatexEditorProps) {
+export default function WritingLatexEditor({ activeFile = 'react_guide.tex' }: WritingLatexEditorProps) {
   const [content, setContent] = useState(MOCK_LATEX_CONTENT);
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
   const [tabs, setTabs] = useState<Tab[]>([
     { id: 'main', name: activeFile, modified: false },
-    { id: 'appendix', name: 'IEEE_main_appendix.tex', modified: false },
+    { id: 'components', name: 'components.tex', modified: false },
   ]);
   const [activeTab, setActiveTab] = useState('main');
 

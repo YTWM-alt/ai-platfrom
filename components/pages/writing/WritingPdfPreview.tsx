@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ZoomInOutlined,
   ZoomOutOutlined,
@@ -26,12 +26,12 @@ const MOCK_PDF_PAGES = [
               marginBottom: '8px',
             }}
           >
-            Breaking the Efficiency-Privacy Trade-off in
+            Modern Web Development:
             <br />
-            Federated Unlearning via Subspace Decoupling
+            A Comprehensive Guide to React and TypeScript
           </h1>
           <p style={{ fontSize: '10px', color: '#444', marginBottom: '6px' }}>
-            Shih He, Jiantao Cai, Jiangang Sha, Kao Yang, Hai Lu, Xiaohui Jia and Zhifeng Tian
+            Technical Documentation Team
           </p>
         </div>
 
@@ -40,78 +40,68 @@ const MOCK_PDF_PAGES = [
           {/* Left column */}
           <div style={{ flex: 1 }}>
             <p style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '4px', fontSize: '9px' }}>
-              Abstract
+              Overview
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '8px' }}>
-              Federated machine unlearning (FMU) aims to remove the influence of targeted data
-              from a federated model upon request. For deep models, exact retraining is often
-              prohibitively expensive, while existing approximate methods either suffer from
-              slow unlearning speed, or risk compromising the retained data performance.
-              This paper proposes FAR-VUS (Fisher-Aware Recovery Realignment for Verifiable
-              Unlearning via Subspace), a novel approach to achieve efficient and effective
-              federated unlearning by retrieving the orthogonal subspace. FARVU-S decomposes
-              the model parameters into orthogonal subspaces via a cholesky-like algorithm and
-              a diagonal decomposition algorithm.
+              This document provides a comprehensive overview of modern web development
+              practices using React and TypeScript. We explore component architecture,
+              state management patterns, and best practices for building scalable
+              applications. The guide covers essential concepts including hooks, context
+              API, and performance optimization techniques that are crucial for
+              developing production-ready web applications.
             </p>
             <p style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '9px' }}>
-              I. Introduction
+              1. Introduction to React
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              FEDERATED Learning (FL) has emerged as a cornerstone of distributed machine
-              learning, enabling multiple parties to collaboratively train a global model while
-              keeping their raw data local [1], [2]. This paradigm effectively addresses the
-              privacy concerns of traditional centralized ML by ensuring that sensitive user
-              data never leaves the client device.
+              React is a JavaScript library for building user interfaces, developed and
+              maintained by Meta (formerly Facebook). It enables developers to create
+              reusable UI components that efficiently update and render when data changes.
+              The library uses a virtual DOM to optimize rendering performance and provides
+              a declarative programming model.
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              Today, it is widely accepted in healthcare and social media platforms to train ML
-              models with patients' medical data. The California Consumer Privacy Act (CCPA) [7],
-              the "right to be forgotten" has become a fundamental legal requirement. This right
-              mandates that organizations must be able to erase an individual's data from a
-              trained model upon request. The straightforward solution involves retraining the
-              model from scratch after removing the target data.
+              Component-based architecture is at the heart of React development. Each
+              component encapsulates its own logic, styling, and state, making code more
+              maintainable and testable. Components can be composed together to build
+              complex user interfaces from simple building blocks.
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              In federated settings, achieving efficient unlearning is more challenging because
-              clients do not share their data. After the first round of FL training, a client may
-              need to store a long history of updates, which creates additional storage pressure.
-              It also creates new privacy risks because it keeps sensitive historical information
-              on the server.
+              React Hooks, introduced in version 16.8, revolutionized how developers write
+              components. Hooks like useState, useEffect, and useContext allow functional
+              components to manage state and side effects without requiring class components.
+              This leads to cleaner, more readable code.
             </p>
           </div>
           {/* Right column */}
           <div style={{ flex: 1 }}>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              To address this problem, we propose FAR-VUS (Fisher-Aware Recovery for Verifiable
-              Unlearning via Subspace). This approach combines the idea of Fisher information
-              with subspace decomposition to efficiently remove the influence of targeted data
-              from the federated model. Our method decomposes model parameters into orthogonal
-              subspaces, enabling targeted parameter perturbation that only affects the "forget
-              direction" while preserving the "retain direction."
+              TypeScript adds static typing to JavaScript, catching errors at compile time
+              rather than runtime. When combined with React, TypeScript provides excellent
+              IDE support, autocompletion, and refactoring capabilities. Type definitions
+              for props and state make components more predictable and easier to understand.
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '8px' }}>
-              The three stages of our FAR-VUS framework are: (1) subspace identification using
-              second-order statistics, (2) selective gradient projection into the forget subspace,
-              and (3) realignment to maintain the performance on retained clients. In extensive
-              experiments on three standard benchmarks, CIFAR-10, CIFAR-100, and Tiny-ImageNet,
-              our method achieves up to 38× speedup compared to exact unlearning.
+              Modern React applications often use additional tools and libraries. State
+              management solutions like Redux or Zustand help manage global state. Routing
+              libraries such as React Router enable navigation between pages. Build tools
+              like Vite or Next.js provide optimized development experiences and production
+              builds.
             </p>
             <p style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '9px' }}>
-              II. Related Work
+              2. Component Patterns
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              <strong>Machine Unlearning.</strong> The concept of machine unlearning was first
-              introduced in [12] and has since attracted growing attention. Prior work on
-              centralized unlearning can be broadly categorized into exact and approximate
-              methods. Exact methods [13], [14] guarantee that the unlearned model is
-              statistically indistinguishable from a retrained model.
+              <strong>Functional Components.</strong> Modern React development primarily
+              uses functional components with hooks. These components are simpler to write
+              and test compared to class components. They promote better code reuse through
+              custom hooks and composition patterns.
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
-              <strong>Federated Unlearning.</strong> Several prior works have studied the problem
-              of unlearning in federated settings. FedEraser [15] proposes to utilize historical
-              updates to calibrate the global model. KNOT [16] clusters similar clients together
-              to speed up retraining. However, most existing methods require storing gradient
-              history or performing multiple retraining rounds.
+              <strong>State Management.</strong> Effective state management is crucial for
+              application scalability. Local state should be kept close to where it's used,
+              while shared state can be lifted up or managed through context. For complex
+              applications, dedicated state management libraries provide more structure.
             </p>
           </div>
         </div>
@@ -122,23 +112,38 @@ const MOCK_PDF_PAGES = [
 
 export default function WritingPdfPreview() {
   const [page, setPage] = useState(1);
-  const totalPages = 12;
-  const [zoom, setZoom] = useState(100);
+  const totalPages = 8;
   const [isCompiled] = useState(true);
+  // Load saved zoom from localStorage or use default
+  const [zoom, setZoom] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_pdfZoom');
+      return saved ? parseInt(saved, 10) : 100;
+    }
+    return 100;
+  });
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
 
-  const zoomIn = () => setZoom((z) => Math.min(200, z + 10));
-  const zoomOut = () => setZoom((z) => Math.max(40, z - 10));
+  // Save zoom to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('writing_pdfZoom', zoom.toString());
+  }, [zoom]);
 
-  const scaledWidth = Math.round(560 * zoom / 100);
-  const scaledPadding = Math.round(48 * zoom / 100);
-  const scaledFontBase = zoom / 100;
+  // Handle wheel zoom (Ctrl + wheel)
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -10 : 10;
+      setZoom((prev) => Math.max(30, Math.min(200, prev + delta)));
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-gray-200">
       {/* Toolbar */}
       <div className="flex items-center gap-1 px-3 py-1.5 bg-white border-b border-gray-200 shrink-0">
         <FileTextOutlined style={{ color: '#ef4444', fontSize: '12px' }} />
-        <span className="text-xs text-gray-500 truncate flex-1 ml-1">IEEE_main.pdf</span>
+        <span className="text-xs text-gray-500 truncate flex-1 ml-1">react_guide.pdf</span>
         <button
           className="flex items-center gap-1 px-2 py-0.5 text-white text-xs rounded transition-colors shrink-0"
           style={{ background: '#1a5c3a', fontSize: '11px' }}
@@ -160,18 +165,20 @@ export default function WritingPdfPreview() {
         </button>
       </div>
 
-      {/* Zoom + Page navigation */}
+      {/* Page navigation + Zoom */}
       <div className="flex items-center justify-center gap-2 px-3 py-1 bg-white border-b border-gray-200 shrink-0">
         <button
-          onClick={zoomOut}
+          onClick={() => setZoom((z) => Math.max(30, z - 10))}
           className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          title="缩小"
         >
           <ZoomOutOutlined style={{ fontSize: '11px' }} />
         </button>
-        <span className="text-xs text-gray-600 w-10 text-center select-none">{zoom}%</span>
+        <span className="text-xs text-gray-600 w-12 text-center select-none">{zoom}%</span>
         <button
-          onClick={zoomIn}
+          onClick={() => setZoom((z) => Math.min(200, z + 10))}
           className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          title="放大"
         >
           <ZoomInOutlined style={{ fontSize: '11px' }} />
         </button>
@@ -196,18 +203,23 @@ export default function WritingPdfPreview() {
       </div>
 
       {/* PDF canvas area */}
-      <div className="flex-1 overflow-auto flex items-start justify-center py-4">
+      <div 
+        ref={pdfContainerRef}
+        onWheel={handleWheel}
+        className="flex-1 overflow-auto flex items-start justify-center py-4"
+      >
         {isCompiled ? (
           <div
-            className="bg-white shadow-xl"
+            className="bg-white shadow-xl transition-transform origin-top"
             style={{
-              width: `${scaledWidth}px`,
-              minHeight: `${Math.round(792 * zoom / 100)}px`,
-              padding: `${scaledPadding}px`,
-              transform: 'none',
+              width: `${560 * zoom / 100}px`,
+              minHeight: `${720 * zoom / 100}px`,
+              padding: `${40 * zoom / 100}px`,
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: 'top center',
             }}
           >
-            <div style={{ transform: `scale(${scaledFontBase})`, transformOrigin: 'top left', width: `${100 / scaledFontBase}%` }}>
+            <div style={{ transform: `scale(${100 / zoom})`, transformOrigin: 'top left', width: `${zoom}%` }}>
               {MOCK_PDF_PAGES[0].content}
             </div>
           </div>

@@ -21,18 +21,91 @@ interface DragState {
 }
 
 export default function WritingLayout() {
-  const [fileWidth, setFileWidth] = useState(220);
-  const [pdfWidth, setPdfWidth] = useState(400);
-  const [chatWidth, setChatWidth] = useState(300);
-  const [activeFile, setActiveFile] = useState('IEEE_main.tex');
+  // Load saved widths from localStorage or use defaults
+  const [fileWidth, setFileWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_fileWidth');
+      return saved ? parseInt(saved, 10) : 220;
+    }
+    return 220;
+  });
+  const [pdfWidth, setPdfWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_pdfWidth');
+      return saved ? parseInt(saved, 10) : 400;
+    }
+    return 400;
+  });
+  const [chatWidth, setChatWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_chatWidth');
+      return saved ? parseInt(saved, 10) : 300;
+    }
+    return 300;
+  });
+  const [activeFile, setActiveFile] = useState('react_guide.tex');
 
-  // Panel visibility states
-  const [showFile, setShowFile] = useState(true);
-  const [showEditor, setShowEditor] = useState(true);
-  const [showPdf, setShowPdf] = useState(true);
-  const [showChat, setShowChat] = useState(true);
+  // Panel visibility states - load from localStorage or use defaults
+  const [showFile, setShowFile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_showFile');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+  const [showEditor, setShowEditor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_showEditor');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+  const [showPdf, setShowPdf] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_showPdf');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
+  const [showChat, setShowChat] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('writing_showChat');
+      return saved !== null ? saved === 'true' : true;
+    }
+    return true;
+  });
 
   const dragging = useRef<DragState | null>(null);
+
+  // Save widths to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('writing_fileWidth', fileWidth.toString());
+  }, [fileWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('writing_pdfWidth', pdfWidth.toString());
+  }, [pdfWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('writing_chatWidth', chatWidth.toString());
+  }, [chatWidth]);
+
+  // Save panel visibility states to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('writing_showFile', showFile.toString());
+  }, [showFile]);
+
+  useEffect(() => {
+    localStorage.setItem('writing_showEditor', showEditor.toString());
+  }, [showEditor]);
+
+  useEffect(() => {
+    localStorage.setItem('writing_showPdf', showPdf.toString());
+  }, [showPdf]);
+
+  useEffect(() => {
+    localStorage.setItem('writing_showChat', showChat.toString());
+  }, [showChat]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -176,8 +249,8 @@ export default function WritingLayout() {
           {/* ── Panel 3: PDF Preview ── */}
           {showPdf ? (
             <div
-              className="flex-shrink-0 overflow-hidden relative"
-              style={{ width: pdfWidth }}
+              className={`overflow-hidden relative ${showEditor ? 'flex-shrink-0' : 'flex-1'}`}
+              style={showEditor ? { width: pdfWidth } : undefined}
             >
               <button
                 onClick={() => setShowPdf(false)}
