@@ -147,11 +147,11 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ background: '#1e1e1e' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ background: '#ffffff' }}>
       {/* Tab bar + Toolbar */}
       <div
         className="flex items-center shrink-0 border-b"
-        style={{ background: '#252526', borderColor: '#1e1e1e' }}
+        style={{ background: '#f5f5f5', borderColor: '#e0e0e0' }}
       >
         {/* Tabs */}
         <div className="flex items-center overflow-x-auto flex-1 min-w-0">
@@ -161,12 +161,12 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs cursor-pointer shrink-0 border-r select-none ${
                 activeTab === tab.id
-                  ? 'text-gray-100 border-t-2 border-t-orange-400'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-[#2d2d30]'
+                  ? 'text-gray-800 border-t-2 border-t-orange-400'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
               style={{
-                background: activeTab === tab.id ? '#1e1e1e' : 'transparent',
-                borderRightColor: '#1e1e1e',
+                background: activeTab === tab.id ? '#ffffff' : 'transparent',
+                borderRightColor: '#e0e0e0',
               }}
             >
               <FileTextOutlined style={{ color: '#f97316', fontSize: '11px' }} />
@@ -176,7 +176,7 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
               )}
               <button
                 onClick={(e) => closeTab(e, tab.id)}
-                className="text-gray-600 hover:text-gray-300 ml-0.5"
+                className="text-gray-400 hover:text-gray-700 ml-0.5"
                 style={{ fontSize: '11px', lineHeight: 1 }}
               >
                 <CloseOutlined />
@@ -195,15 +195,15 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
             <span>编译</span>
           </button>
           <button
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#2d2d30] transition-colors"
-            style={{ color: '#9ca3af' }}
+            className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 transition-colors"
+            style={{ color: '#6b7280' }}
             title="保存"
           >
             <SaveOutlined style={{ fontSize: '11px' }} />
           </button>
           <button
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#2d2d30] transition-colors"
-            style={{ color: '#9ca3af' }}
+            className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 transition-colors"
+            style={{ color: '#6b7280' }}
             title="下载"
           >
             <DownloadOutlined style={{ fontSize: '11px' }} />
@@ -216,14 +216,15 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
         {/* Line numbers */}
         <div
           ref={lineNumRef}
-          className="select-none overflow-hidden shrink-0 pt-2 pb-2 text-right font-mono"
+          className="select-none overflow-hidden shrink-0 pt-2 pb-2 text-right font-mono border-r"
           style={{
-            background: '#1e1e1e',
-            color: '#636363',
+            background: '#fafafa',
+            color: '#9ca3af',
             fontSize: '12px',
             lineHeight: '20px',
             width: '44px',
             paddingRight: '8px',
+            borderColor: '#e5e7eb',
           }}
         >
           {Array.from({ length: lineCount }, (_, i) => (
@@ -234,7 +235,7 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
         </div>
 
         {/* Textarea */}
-        <div className="flex-1 overflow-auto" style={{ background: '#1e1e1e' }}>
+        <div className="flex-1 overflow-hidden" style={{ background: '#ffffff' }}>
           <textarea
             ref={textareaRef}
             value={content}
@@ -243,13 +244,13 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
             onClick={handleCursorChange}
             onKeyUp={handleCursorChange}
             spellCheck={false}
-            className="w-full min-h-full resize-none outline-none border-none p-2 pl-1 font-mono"
+            className="w-full h-full resize-none outline-none border-none p-2 pl-1 font-mono"
             style={{
-              background: '#1e1e1e',
-              color: '#d4d4d4',
+              background: '#ffffff',
+              color: '#1f2937',
               fontSize: '13px',
               lineHeight: '20px',
-              caretColor: '#d4d4d4',
+              caretColor: '#1f2937',
               tabSize: 2,
             }}
           />
@@ -258,8 +259,8 @@ export default function WritingLatexEditor({ activeFile = 'IEEE_main.tex' }: Wri
 
       {/* Status bar */}
       <div
-        className="flex items-center justify-between px-3 shrink-0"
-        style={{ background: '#1a5c3a', color: '#d4d4d4', fontSize: '11px', height: '22px' }}
+        className="flex items-center justify-between px-3 shrink-0 border-t"
+        style={{ background: '#1a5c3a', color: '#ffffff', fontSize: '11px', height: '22px', borderColor: '#e5e7eb' }}
       >
         <div className="flex items-center gap-3">
           <span>LaTeX</span>
