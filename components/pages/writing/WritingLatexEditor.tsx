@@ -6,6 +6,7 @@ import {
   DownloadOutlined,
   FileTextOutlined,
   CloseOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 
 const MOCK_LATEX_CONTENT = `\\documentclass[11pt,article]{article}
@@ -107,11 +108,13 @@ interface Tab {
 
 interface WritingLatexEditorProps {
   activeFile?: string;
+  onSendToAi?: (text: string) => void;
 }
 
-export default function WritingLatexEditor({ activeFile = 'react_guide.tex' }: WritingLatexEditorProps) {
+export default function WritingLatexEditor({ activeFile = 'react_guide.tex', onSendToAi }: WritingLatexEditorProps) {
   const [content, setContent] = useState(MOCK_LATEX_CONTENT);
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
+  const [selectedText, setSelectedText] = useState('');
   const [tabs, setTabs] = useState<Tab[]>([
     { id: 'main', name: activeFile, modified: false },
     { id: 'components', name: 'components.tex', modified: false },
@@ -132,11 +135,32 @@ export default function WritingLatexEditor({ activeFile = 'react_guide.tex' }: W
 
   const handleCursorChange = () => {
     if (textareaRef.current) {
-      const { selectionStart } = textareaRef.current;
+      const { selectionStart, selectionEnd } = textareaRef.current;
       const textBefore = content.substring(0, selectionStart);
       const lineNum = textBefore.split('\n').length;
       const col = textBefore.split('\n').pop()!.length + 1;
       setCursorPos({ line: lineNum, col });
+      
+      // Track selected text
+      const selected = content.substring(selectionStart, selectionEnd);
+      setSelectedText(selected);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const newContent = content.substring(0, start) + '  ' + content.substring(end);
+      setContent(newContent);
+      setTabs((prev) => prev.map((t) => (t.id === activeTab ? { ...t, modified: true } : t)));
+      requestAnimationFrame(() => {
+        ta.selectionStart = start + 2;
+        ta.selectionEnd = start + 2;
+      });
     }
   };
 
@@ -219,6 +243,25 @@ export default function WritingLatexEditor({ activeFile = 'react_guide.tex' }: W
           >
             <DownloadOutlined style={{ fontSize: '11px' }} />
           </button>
+          <div className="w-px h-4 bg-gray-300 mx-1" />
+          <button
+            onClick={() => {
+              if (selectedText && onSendToAi) {
+                onSendToAi(selectedText);
+              }
+            }}
+            disabled={!selectedText}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ 
+              background: selectedText ? '#1a5c3a' : '#d1d5db',
+              color: '#ffffff',
+              fontSize: '12px'
+            }}
+            title={selectedText ? '发送选中内容给 AI' : '请先选中文本'}
+          >
+            <RobotOutlined />
+            <span>问 AI</span>
+          </button>
         </div>
       </div>
 
@@ -251,6 +294,7 @@ export default function WritingLatexEditor({ activeFile = 'react_guide.tex' }: W
             ref={textareaRef}
             value={content}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             onScroll={handleScroll}
             onClick={handleCursorChange}
             onKeyUp={handleCursorChange}

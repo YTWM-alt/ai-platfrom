@@ -44,6 +44,7 @@ export default function WritingLayout() {
     return 300;
   });
   const [activeFile, setActiveFile] = useState('react_guide.tex');
+  const [aiPrompt, setAiPrompt] = useState('');
 
   // Panel visibility states - load from localStorage or use defaults
   const [showFile, setShowFile] = useState(() => {
@@ -230,7 +231,13 @@ export default function WritingLayout() {
                 >
                   <CloseOutlined style={{ fontSize: '9px' }} />
                 </button>
-                <WritingLatexEditor activeFile={activeFile} />
+                <WritingLatexEditor 
+                  activeFile={activeFile} 
+                  onSendToAi={(text) => {
+                    setAiPrompt(text);
+                    if (!showChat) setShowChat(true);
+                  }}
+                />
               </div>
               {showPdf && <Divider onMouseDown={startDrag('pdf', pdfWidth)} />}
             </>
@@ -289,7 +296,7 @@ export default function WritingLayout() {
               >
                 <CloseOutlined style={{ fontSize: '9px' }} />
               </button>
-              <WritingAiChat />
+              <WritingAiChat aiPrompt={aiPrompt} onPromptConsumed={() => setAiPrompt('')} />
             </div>
           </>
         )}

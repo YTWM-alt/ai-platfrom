@@ -2,11 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ClearOutlined,
+  CopyOutlined,
+  CheckOutlined,
   EllipsisOutlined,
   RobotOutlined,
   SendOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -45,15 +49,58 @@ function getMockResponse(query: string): string {
   return `我理解你的问题是关于「${query}」。\n\n在学术写作中，这部分建议：\n\n1. **清晰性**：每个段落聚焦一个核心论点，首句即主旨\n2. **连贯性**：使用 *Therefore*, *However*, *Moreover* 等过渡词\n3. **精确性**：避免模糊表述，用实验数据支撑每个论断\n\n需要我帮你修改具体段落吗？把相关文本发给我即可。`;
 }
 
-export default function WritingAiChat() {
+function CodeBlock({ children }: { children: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="relative my-1.5 rounded-lg overflow-hidden border border-gray-200">
+      <div className="flex items-center justify-between px-3 py-1" style={{ background: '#1f2937' }}>
+        <span className="text-[10px] text-gray-400 font-mono">latex</span>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors"
+        >
+          {copied ? <CheckOutlined style={{ fontSize: '10px' }} /> : <CopyOutlined style={{ fontSize: '10px' }} />}
+          <span>{copied ? '已复制' : '复制'}</span>
+        </button>
+      </div>
+      <pre className="overflow-x-auto px-3 py-2 font-mono text-[11px] leading-relaxed" style={{ background: '#282c34', color: '#abb2bf', margin: 0 }}>
+        <code>{children}</code>
+      </pre>
+    </div>
+  );
+}
+
+interface WritingAiChatProps {
+  aiPrompt?: string;
+  onPromptConsumed?: () => void;
+}
+
+export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiChatProps = {}) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Auto-fill input when aiPrompt is passed from editor
+  useEffect(() => {
+    if (aiPrompt) {
+      setInput(aiPrompt);
+      inputRef.current?.focus();
+      if (onPromptConsumed) {
+        onPromptConsumed();
+      }
+    }
+  }, [aiPrompt, onPromptConsumed]);
 
   const handleSend = () => {
     if (!input.trim() || loading) return;
@@ -146,9 +193,9 @@ export default function WritingAiChat() {
 
             {/* Bubble */}
             <div
-              className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
                 msg.role === 'user'
-                  ? 'text-white rounded-tr-sm'
+                  ? 'text-white rounded-tr-sm whitespace-pre-wrap'
                   : 'text-gray-700 rounded-tl-sm border border-gray-100'
               }`}
               style={{
@@ -157,7 +204,30 @@ export default function WritingAiChat() {
                 lineHeight: 1.6,
               }}
             >
-              {msg.content}
+              {msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                    ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+                    li: ({ children }) => <li>{children}</li>,
+                    code: ({ inline, children }: { inline?: boolean; children?: React.ReactNode }) =>
+                      inline ? (
+                        <code className="bg-gray-200 text-orange-600 rounded px-1 py-0.5 font-mono" style={{ fontSize: '11px' }}>{children}</code>
+                      ) : (
+                        <CodeBlock>{String(children).replace(/\n$/, '')}</CodeBlock>
+                      ),
+                    pre: ({ children }) => <>{children}</>,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              )}
             </div>
           </div>
         ))}
@@ -213,6 +283,7 @@ export default function WritingAiChat() {
           onBlur={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
         >
           <textarea
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
