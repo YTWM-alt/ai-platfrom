@@ -1,19 +1,28 @@
 //通用的历史记录中间栏
 'use client';
 import { useHistory } from '@/context/HistoryContext';
-import { LeftOutlined, SearchOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { LeftOutlined, RightOutlined, SearchOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
 
-export const HistorySidebar = () => {
+interface HistorySidebarProps {
+  className?: string;
+  position?: 'left' | 'right';
+}
+
+export const HistorySidebar = ({ className = '', position = 'left' }: HistorySidebarProps) => {
   const { historyState, closeHistory, getModuleHistory } = useHistory();
   const { isOpen, activeModule, title } = historyState;
 
   if (!isOpen || !activeModule) return null;
 
   const list = getModuleHistory(activeModule);
+  const isRight = position === 'right';
 
   return (
-    <div className="w-80 h-full border-r border-gray-200 flex flex-col animate-in slide-in-from-left duration-300"
+    <div className={`w-80 h-full flex flex-col animate-in duration-300
+      ${isRight ? 'border-l border-gray-200 slide-in-from-right' : 'border-r border-gray-200 slide-in-from-left'}
+      ${className}
+    `}
       style={{
         background: `
           radial-gradient(circle at top right, rgba(200, 253, 209, 0.08), transparent 60%),
@@ -29,7 +38,7 @@ export const HistorySidebar = () => {
           <span className='text-[14px]'>{title}</span>
         </div>
         <button onClick={closeHistory} className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer">
-          <LeftOutlined />
+          {isRight ? <RightOutlined /> : <LeftOutlined />}
         </button>
       </div>
 
