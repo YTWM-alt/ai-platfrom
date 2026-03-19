@@ -99,7 +99,7 @@ const MOCK_PDF_PAGES = [
             </p>
             <p style={{ textAlign: 'justify', marginBottom: '6px' }}>
               <strong>State Management.</strong> Effective state management is crucial for
-              application scalability. Local state should be kept close to where it's used,
+              application scalability. Local state should be kept close to where it&apos;s used,
               while shared state can be lifted up or managed through context. For complex
               applications, dedicated state management libraries provide more structure.
             </p>
