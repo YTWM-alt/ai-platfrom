@@ -1,21 +1,21 @@
 'use client';
 import {
   FolderOutlined,
-  FileTextOutlined,
-  FilePdfOutlined,
+  CodeOutlined,
+  ConsoleSqlOutlined,
   RobotOutlined,
 } from '@ant-design/icons';
 import EditorLayout from '../shared/EditorLayout';
-import WritingAiChat from './WritingAiChat';
-import WritingFileExplorer from './WritingFileExplorer';
-import WritingLatexEditor from './WritingLatexEditor';
-import WritingPdfPreview from './WritingPdfPreview';
+import CodeAiChat from './CodeAiChat';
+import CodeFileExplorer from './CodeFileExplorer';
+import CodePythonEditor from './CodePythonEditor';
 
-export default function WritingLayout() {
+export default function CodeLayout() {
   return (
     <EditorLayout
-      storagePrefix="writing"
-      defaultFile="react_guide.tex"
+      storagePrefix="code"
+      defaultFile="main.py"
+      hidePreview
       panelConfig={{
         file: {
           icon: <FolderOutlined style={{ fontSize: '10px' }} />,
@@ -26,20 +26,20 @@ export default function WritingLayout() {
           closedIcon: <FolderOutlined style={{ fontSize: '48px', marginBottom: '12px' }} />,
         },
         editor: {
-          icon: <FileTextOutlined style={{ fontSize: '10px' }} />,
-          label: 'LaTeX编辑',
+          icon: <CodeOutlined style={{ fontSize: '10px' }} />,
+          label: '代码编辑',
           closeTip: '关闭代码编辑',
           closedText: '代码编辑区已关闭',
           closedSubText: '点击顶部按钮重新打开',
-          closedIcon: <FileTextOutlined style={{ fontSize: '48px', marginBottom: '12px' }} />,
+          closedIcon: <CodeOutlined style={{ fontSize: '48px', marginBottom: '12px' }} />,
         },
         preview: {
-          icon: <FilePdfOutlined style={{ fontSize: '10px' }} />,
-          label: 'PDF预览',
-          closeTip: '关闭PDF预览',
-          closedText: 'PDF预览区已关闭',
+          icon: <ConsoleSqlOutlined style={{ fontSize: '10px' }} />,
+          label: '终端输出',
+          closeTip: '关闭终端',
+          closedText: '终端输出区已关闭',
           closedSubText: '点击顶部按钮重新打开',
-          closedIcon: <FilePdfOutlined style={{ fontSize: '48px', marginBottom: '12px' }} />,
+          closedIcon: <ConsoleSqlOutlined style={{ fontSize: '48px', marginBottom: '12px' }} />,
         },
         chat: {
           icon: <RobotOutlined style={{ fontSize: '10px' }} />,
@@ -51,14 +51,14 @@ export default function WritingLayout() {
         },
       }}
       renderFileExplorer={({ onFileSelect }) => (
-        <WritingFileExplorer onFileSelect={onFileSelect} />
+        <CodeFileExplorer onFileSelect={onFileSelect} />
       )}
       renderEditor={({ activeFile, onSendToAi }) => (
-        <WritingLatexEditor activeFile={activeFile} onSendToAi={onSendToAi} />
+        <CodePythonEditor activeFile={activeFile} onSendToAi={onSendToAi} />
       )}
-      renderPreview={() => <WritingPdfPreview />}
+      renderPreview={() => <div />}
       renderChat={({ aiPrompt, onPromptConsumed }) => (
-        <WritingAiChat aiPrompt={aiPrompt} onPromptConsumed={onPromptConsumed} />
+        <CodeAiChat aiPrompt={aiPrompt} onPromptConsumed={onPromptConsumed} />
       )}
     />
   );

@@ -8,6 +8,8 @@ import {
   RobotOutlined,
   SendOutlined,
   UserOutlined,
+  CloseOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -23,30 +25,30 @@ const INITIAL_MESSAGES: Message[] = [
     id: 'init',
     role: 'assistant',
     content:
-      '你好！我是你的 LaTeX 写作助手。我可以帮你：\n\n• 修改和优化 LaTeX 代码\n• 解释复杂的数学公式\n• 提供写作建议和结构优化\n• 生成参考文献格式\n\n请告诉我你需要什么帮助？',
+      '你好！我是你的 Python 代码助手。我可以帮你：\n\n• 编写和优化 Python 代码\n• 调试错误和异常\n• 解释算法和数据结构\n• 推荐最佳实践和库\n\n请告诉我你需要什么帮助？',
   },
 ];
 
-const QUICK_ACTIONS = ['优化摘要', '添加公式', '修改语法', '生成引用', '解释代码'];
+const QUICK_ACTIONS = ['优化代码', '解释错误', '添加注释', '写单元测试', '性能分析'];
 
 function getMockResponse(query: string): string {
   const q = query.toLowerCase();
-  if (q.includes('摘要') || q.includes('abstract')) {
-    return '你的摘要结构清晰。建议：\n\n1. **首句**：直接点明研究问题和挑战\n2. **方法句**：一句话概括你的核心方案 (FAR-VUS)\n3. **结果句**：加入具体数字，例如"在 CIFAR-10 上提升 38×"\n\n示例修改：\n```\nThis paper proposes FAR-VUS, a novel federated unlearning\nmethod that achieves 38× speedup over exact retraining\nwhile maintaining model accuracy within 0.3%.\n```';
+  if (q.includes('优化') || q.includes('optimize') || q.includes('性能')) {
+    return '分析你的代码后，有以下优化建议：\n\n1. **向量化操作**：用 NumPy 批量计算替代 Python 循环\n2. **数据加载**：增加 `num_workers` 参数加速数据加载\n3. **混合精度训练**：使用 `torch.cuda.amp` 减少显存占用\n\n示例：\n```python\n# 使用混合精度训练\nscaler = torch.cuda.amp.GradScaler()\nwith torch.cuda.amp.autocast():\n    pred = model(batch_x)\n    loss = criterion(pred, batch_y)\nscaler.scale(loss).backward()\nscaler.step(optimizer)\nscaler.update()\n```';
   }
-  if (q.includes('公式') || q.includes('formula') || q.includes('math')) {
-    return '常用 LaTeX 数学公式模板：\n\n**行内公式**：`$f(x) = \\\\sum_{i=1}^{n} w_i x_i$`\n\n**独立公式**：\n```latex\n\\\\begin{equation}\n  \\\\mathcal{L}_{forget} = \\\\frac{1}{|\\\\mathcal{D}_f|}\n  \\\\sum_{(x,y) \\\\in \\\\mathcal{D}_f} \\\\ell(f_\\\\theta(x), y)\n\\\\end{equation}\n```\n\n**矩阵**：\n```latex\n\\\\begin{bmatrix} a & b \\\\\\\\ c & d \\\\end{bmatrix}\n```';
+  if (q.includes('错误') || q.includes('error') || q.includes('bug') || q.includes('调试')) {
+    return '根据你的代码，可能存在以下问题：\n\n1. **维度不匹配**：检查 `input_dim` 是否与数据维度一致\n2. **梯度消失**：深层网络建议用 `nn.BatchNorm1d`\n3. **学习率过大**：尝试用 `ReduceLROnPlateau` 调度器\n\n调试建议：\n```python\n# 打印中间维度\nprint(f"Input shape: {batch_x.shape}")\nprint(f"Output shape: {model(batch_x).shape}")\nprint(f"Target shape: {batch_y.shape}")\n```';
   }
-  if (q.includes('引用') || q.includes('cite') || q.includes('reference')) {
-    return '在 `references.bib` 中添加：\n\n```bibtex\n@inproceedings{mcmahan2017,\n  title={Communication-Efficient Learning\n    of Deep Networks from Decentralized Data},\n  author={McMahan, Brendan and others},\n  booktitle={AISTATS},\n  year={2017}\n}\n```\n\n正文中使用 `\\\\cite{mcmahan2017}` 引用。';
+  if (q.includes('测试') || q.includes('test') || q.includes('unittest')) {
+    return '为你的模型生成单元测试：\n\n```python\nimport pytest\nimport torch\nfrom src.model import MLPRegressor\n\nclass TestMLPRegressor:\n    def setup_method(self):\n        self.model = MLPRegressor(\n            input_dim=10, hidden_dim=64, num_layers=2\n        )\n\n    def test_output_shape(self):\n        x = torch.randn(32, 10)\n        out = self.model(x)\n        assert out.shape == (32, 1)\n\n    def test_forward_no_nan(self):\n        x = torch.randn(16, 10)\n        out = self.model(x)\n        assert not torch.isnan(out).any()\n\n    def test_gradient_flow(self):\n        x = torch.randn(8, 10, requires_grad=True)\n        out = self.model(x).sum()\n        out.backward()\n        assert x.grad is not None\n```';
   }
-  if (q.includes('语法') || q.includes('grammar') || q.includes('错误')) {
-    return '我分析了你的 LaTeX 代码，发现以下潜在问题：\n\n1. `\\\\usepackage{amsfont}` → 应为 `\\\\usepackage{amsfonts}`（多了一个 s）\n2. `\\\\usepackage[bm]` → 应为 `\\\\usepackage{bm}`（方括号应为花括号）\n3. 建议在 `\\\\begin{document}` 前添加 `\\\\usepackage{microtype}` 以优化排版';
+  if (q.includes('注释') || q.includes('comment') || q.includes('文档')) {
+    return '建议添加以下文档和注释：\n\n1. **模块级 docstring**：描述文件用途\n2. **函数 docstring**：用 Google/NumPy 风格\n3. **类型注解**：参数和返回值类型\n\n示例：\n```python\ndef train_epoch(\n    model: nn.Module,\n    loader: DataLoader,\n    optimizer: optim.Optimizer,\n    criterion: nn.Module,\n    device: str,\n) -> float:\n    """Train model for one epoch.\n\n    Args:\n        model: The neural network model.\n        loader: Training data loader.\n        optimizer: Optimization algorithm.\n        criterion: Loss function.\n        device: Device to run on (cuda/cpu).\n\n    Returns:\n        Average training loss for the epoch.\n    """\n```';
   }
-  if (q.includes('解释') || q.includes('explain')) {
-    return '我来解释这段代码的含义：\n\n- `\\\\let\\\\openbox\\\\relax` — 清除 `openbox` 命令的定义，避免与 `amsthm` 冲突\n- `\\\\usepackage[noend]{algpseudocode}` — 加载伪代码包，`noend` 参数隐藏 end 语句\n- `\\\\usepackage{newtxtext}` + `\\\\usepackage{newtxmath}` — 使用 Times New Roman 风格的字体，适合 IEEE 论文';
+  if (q.includes('解释') || q.includes('explain') || q.includes('什么意思')) {
+    return '我来解释这段代码：\n\n- `nn.Sequential(*layers)` — 将层列表展开为顺序模型，按顺序执行每一层\n- `loss.backward()` — 反向传播，计算所有参数的梯度\n- `optimizer.zero_grad()` — 清零梯度，防止梯度累积\n- `model.train()` / `model.eval()` — 切换训练/评估模式，影响 Dropout 和 BatchNorm 的行为\n- `torch.no_grad()` — 禁用梯度计算，节省内存，加速推理';
   }
-  return `我理解你的问题是关于「${query}」。\n\n在学术写作中，这部分建议：\n\n1. **清晰性**：每个段落聚焦一个核心论点，首句即主旨\n2. **连贯性**：使用 *Therefore*, *However*, *Moreover* 等过渡词\n3. **精确性**：避免模糊表述，用实验数据支撑每个论断\n\n需要我帮你修改具体段落吗？把相关文本发给我即可。`;
+  return '关于「' + query + '」，建议：\n\n1. **代码结构**：遵循 PEP 8 规范，模块化设计\n2. **错误处理**：添加 try-except 和参数校验\n3. **日志记录**：用 `logging` 模块替代 `print`\n\n```python\nimport logging\n\nlogger = logging.getLogger(__name__)\nlogger.setLevel(logging.INFO)\n\n# 替代 print\nlogger.info(f"Epoch {epoch} | Loss: {loss:.4f}")\n```\n\n需要我帮你修改具体代码吗？';
 }
 
 function CodeBlock({ children }: { children: string }) {
@@ -59,7 +61,7 @@ function CodeBlock({ children }: { children: string }) {
   return (
     <div className="relative my-1.5 rounded-lg overflow-hidden border border-gray-200">
       <div className="flex items-center justify-between px-3 py-1" style={{ background: '#1f2937' }}>
-        <span className="text-[10px] text-gray-400 font-mono">latex</span>
+        <span className="text-[10px] text-gray-400 font-mono">python</span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white transition-colors"
@@ -75,15 +77,21 @@ function CodeBlock({ children }: { children: string }) {
   );
 }
 
-interface WritingAiChatProps {
+interface CodeContext {
+  code: string;
+  language?: string;
+}
+
+interface CodeAiChatProps {
   aiPrompt?: string;
   onPromptConsumed?: () => void;
 }
 
-export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiChatProps = {}) {
+export default function CodeAiChat({ aiPrompt, onPromptConsumed }: CodeAiChatProps = {}) {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [codeContext, setCodeContext] = useState<CodeContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -91,10 +99,10 @@ export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiC
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Auto-fill input when aiPrompt is passed from editor
+  // Auto-fill code context when aiPrompt is passed from editor
   useEffect(() => {
     if (aiPrompt) {
-      setInput(aiPrompt);
+      setCodeContext({ code: aiPrompt, language: 'python' });
       inputRef.current?.focus();
       if (onPromptConsumed) {
         onPromptConsumed();
@@ -103,16 +111,23 @@ export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiC
   }, [aiPrompt, onPromptConsumed]);
 
   const handleSend = () => {
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && !codeContext) || loading) return;
+
+    // Build message content with code context if present
+    let content = input.trim();
+    if (codeContext) {
+      content = `${content}\n\n\`\`\`${codeContext.language || ''}\n${codeContext.code}\n\`\`\``;
+    }
 
     const userMsg: Message = {
       id: `u${Date.now()}`,
       role: 'user',
-      content: input.trim(),
+      content: content || codeContext!.code,
     };
-    const query = input.trim();
+    const query = content || codeContext!.code;
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
+    setCodeContext(null);
     setLoading(true);
 
     setTimeout(() => {
@@ -148,7 +163,7 @@ export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiC
           >
             <RobotOutlined style={{ color: '#1a5c3a', fontSize: '12px' }} />
           </div>
-          <span className="text-sm font-semibold text-gray-800">AI 写作助手</span>
+          <span className="text-sm font-semibold text-gray-800">AI 代码助手</span>
           <span
             className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
             style={{ background: 'rgba(26,92,58,0.1)', color: '#1a5c3a' }}
@@ -276,6 +291,31 @@ export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiC
 
       {/* Input area */}
       <div className="px-3 pb-3 pt-1 shrink-0">
+        {/* Code context card */}
+        {codeContext && (
+          <div className="mb-2 rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center gap-1.5">
+                <CodeOutlined style={{ fontSize: '11px', color: '#6b7280' }} />
+                <span className="text-[11px] text-gray-600 font-medium">
+                  {codeContext.language || 'code'} · {codeContext.code.split('\n').length} 行
+                </span>
+              </div>
+              <button
+                onClick={() => setCodeContext(null)}
+                className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                title="移除代码"
+              >
+                <CloseOutlined style={{ fontSize: '10px' }} />
+              </button>
+            </div>
+            <div className="max-h-32 overflow-y-auto">
+              <pre className="px-3 py-2 text-[11px] font-mono text-gray-700 leading-relaxed" style={{ margin: 0 }}>
+                {codeContext.code}
+              </pre>
+            </div>
+          </div>
+        )}
         <div
           className="flex items-end gap-2 rounded-xl border border-gray-200 px-3 py-2 transition-all"
           style={{ background: '#f9fafb' }}
@@ -294,7 +334,7 @@ export default function WritingAiChat({ aiPrompt, onPromptConsumed }: WritingAiC
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && !codeContext) || loading}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-white transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: '#1a5c3a' }}
           >
