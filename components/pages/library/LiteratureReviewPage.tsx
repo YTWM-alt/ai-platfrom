@@ -546,7 +546,6 @@ export default function LiteratureReviewPage() {
               <div className="mt-3 flex items-start gap-1.5 text-[10px] text-gray-400">
                 <InfoCircleOutlined style={{ fontSize: '10px', marginTop: '2px' }} />
                 <span>
-                  Encoder = 仅编码器架构，Decoder = 仅解码器架构，Enc-Dec = 编解码器架构。
                   <CheckCircleFilled style={{ fontSize: '9px', color: '#1a5c3a', margin: '0 2px' }} /> 表示该论文具备此特性，
                   <CloseOutlined style={{ fontSize: '8px', color: '#d1d5db', margin: '0 2px' }} /> 表示不涉及。
                 </span>

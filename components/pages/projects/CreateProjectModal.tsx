@@ -105,7 +105,7 @@ export default function CreateProjectModal({ onClose, onCreate }: CreateProjectM
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="例如：联邦学习隐私保护研究"
+                  placeholder="例如：深度学习研究"
                   autoFocus
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-200 bg-white outline-none focus:border-primary/40 focus:shadow-sm transition-all placeholder-gray-400"
                 />
