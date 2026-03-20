@@ -14,28 +14,28 @@ const navItems = [
     id: 'knowledge',
     label: '知识库',
     icon: Database,
-    href: '/knowledge',
+    href: '/projects',
     subItems: ['知识导入', '知识管理', '智能检索']
   },
   {
     id: 'writing',
     label: '智能写作',
     icon: PenTool,
-    href: '/writing',
+    href: '/projects',
     subItems: ['论文写作', '报告生成', '文案创作', '智能润色']
   },
   {
     id: 'drawing',
     label: 'AI绘图',
     icon: Image,
-    href: '/drawing',
+    href: '/projects',
     subItems: ['图像生成', '图像编辑', '风格迁移']
   },
   {
     id: 'code',
     label: '代码助手',
     icon: Code,
-    href: '/code',
+    href: '/projects',
     subItems: ['代码生成', '代码解释', '代码优化', '调试助手']
   },
   {
@@ -48,7 +48,7 @@ const navItems = [
     id: 'resources',
     label: '资源中心',
     icon: BookOpen,
-    href: '/resources',
+    href: '/projects',
     subItems: ['模板库', '案例库', '教程文档']
   },
 ]
@@ -123,11 +123,11 @@ export default function Header({ activeTab, setActiveTab }: HeaderProps) {
           {/* Right Actions */}
           <div className="flex items-center space-x-4">
             <Link 
-              href="/private"
+              href="/projects"
               className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600! hover:text-primary-600! hover:bg-primary-50! rounded-lg transition-colors"
             >
               <User className="w-4 h-4" />
-              <span>个人主页</span>
+              <span>进入工作台</span>
             </Link>
             {!isLoggedIn ? (
               <>

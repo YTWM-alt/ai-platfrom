@@ -1,7 +1,8 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { SearchOutlined, LeftOutlined, RightOutlined, HomeOutlined  } from '@ant-design/icons';
+import { SearchOutlined, LeftOutlined, RightOutlined, HomeOutlined, FolderOutlined, SwapOutlined } from '@ant-design/icons';
 import { SidebarItem } from './SidebarItem'; 
 import { useLayout } from '@/context/LayoutContext';
 import { UserSection } from '@/components/User/UserSection';
@@ -19,6 +20,18 @@ export default function Sidebar() {
     isLoggedIn, 
     setIsLoginModalOpen 
   } = useLayout();
+
+  // 读取当前项目名称
+  const [projectName, setProjectName] = useState<string>('');
+  useEffect(() => {
+    const name = localStorage.getItem('currentProjectName') || '';
+    setProjectName(name);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'currentProjectName') setProjectName(e.newValue || '');
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const handleNavClick = (target: NavItem | string) => {
     const path = typeof target === 'string' ? target : target.path;
@@ -73,6 +86,14 @@ export default function Sidebar() {
           <SearchOutlined className={collapsed ? 'text-xl' : 'text-lg mr-2'} />
           {!collapsed && <span>学术搜索</span>}
           </button>
+
+          <button 
+            onClick={() => handleNavClick('/projects')} 
+            className="w-[98%] h-10 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl flex items-center justify-center mt-2 transition-all"
+          >
+            <SwapOutlined className={collapsed ? 'text-xl' : 'text-lg mr-2'} />
+            {!collapsed && <span>切换项目</span>}
+          </button>
               
           <button 
             onClick={() => handleNavClick('/')} 
@@ -83,6 +104,27 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
+
+      {/* === 当前项目名称 === */}
+      {projectName && (
+        <div className={`shrink-0 px-3 py-2 border-b border-gray-100 ${collapsed ? 'flex justify-center' : ''}`}>
+          {collapsed ? (
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold" title={projectName}>
+              {projectName.charAt(0)}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                {projectName.charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-gray-400 leading-none mb-0.5">当前项目</p>
+                <p className="text-xs font-semibold text-gray-700 truncate leading-tight">{projectName}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* === 中间菜单区域 === */}
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
