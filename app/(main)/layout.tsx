@@ -3,6 +3,8 @@
 // 左右结构排版，侧边栏固定，主内容区滚动
 
 'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/private/siderbar/Sidebar'; 
 import { useLayout } from '@/context/LayoutContext'; // 仅引入钩子
 import { App, ConfigProvider } from 'antd';
@@ -53,9 +55,39 @@ function MainFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
+// 项目守卫：没有选择项目时跳转到项目选择页
+function ProjectGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const projectId = localStorage.getItem('currentProjectId');
+    if (!projectId) {
+      router.replace('/projects');
+    } else {
+      setReady(true);
+    }
+  }, [router]);
+
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-mesh-green">
+        <div className="text-center text-gray-400">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm">正在加载...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 // 导出最终布局
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
+    <ProjectGuard>
       <MainFrame>{children}</MainFrame>
+    </ProjectGuard>
   );
 }

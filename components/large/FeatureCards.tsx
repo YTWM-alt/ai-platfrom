@@ -13,7 +13,7 @@ const features = [
     bgColor: 'bg-blue-50',
     tags: ['知识导入', '智能检索', '文档管理'],
     isNew: false,
-    href: '/knowledge',
+    href: '/projects',
   },
   {
     id: 'writing',
@@ -24,7 +24,7 @@ const features = [
     bgColor: 'bg-purple-50',
     tags: ['论文写作', '智能润色', '文案生成'],
     isNew: false,
-    href: '/writing',
+    href: '/projects',
   },
   {
     id: 'drawing',
@@ -35,7 +35,7 @@ const features = [
     bgColor: 'bg-orange-50',
     tags: ['图像生成', '风格迁移', '创意设计'],
     isNew: true,
-    href: '/drawing',
+    href: '/projects',
   },
   {
     id: 'code',
@@ -46,7 +46,7 @@ const features = [
     bgColor: 'bg-green-50',
     tags: ['代码生成', '代码优化', '调试助手'],
     isNew: true,
-    href: '/code',
+    href: '/projects',
   },
 ]
 

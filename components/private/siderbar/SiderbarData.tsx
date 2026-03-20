@@ -1,5 +1,5 @@
 import { 
-  BookOutlined, ReadOutlined, EditOutlined, HighlightOutlined, CodeOutlined,
+  FileSearchOutlined, ReadOutlined, EditOutlined, HighlightOutlined, CodeOutlined,
   BulbOutlined, StarOutlined, ApartmentOutlined, DatabaseOutlined,
   ProductOutlined, 
 } from '@ant-design/icons';
@@ -7,7 +7,7 @@ import { NavItem } from '@/types/private/sidebar';
 
 // 导出导航栏具有的数据
 export const NAV_ITEMS : NavItem[] = [
-  { id: 'library', label: 'AI文库', icon: <BookOutlined />, path: '/library' },
+  { id: 'library', label: 'AI文献综述', icon: <FileSearchOutlined />, path: '/library' },
   { id: 'reading', label: 'AI阅读', icon: <ReadOutlined />, path: '/reading' },
   { id: 'writing', label: 'AI写作', icon: <EditOutlined />, path: '/writing' },
   { id: 'drawing', label: 'AI绘图', icon: <HighlightOutlined />, path: '/drawing' },
