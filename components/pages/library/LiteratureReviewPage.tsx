@@ -15,6 +15,11 @@ import {
   CalendarOutlined,
   TeamOutlined,
   DownloadOutlined,
+  EditOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  NodeIndexOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 
 /* ═══════════════════════════════════════════════════════
@@ -55,7 +60,14 @@ interface RoadmapEra {
   year: string;
   title: string;
   color: string;
-  papers: { id: string; name: string; tag: string }[];
+  papers: { id: string; name: string; tag: string; abstract?: string }[];
+}
+
+interface MindMapNode {
+  id: string;
+  label: string;
+  color?: string;
+  children: MindMapNode[];
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -207,11 +219,68 @@ const ROADMAP_DATA: RoadmapEra[] = [
   },
 ];
 
+const INITIAL_MINDMAP: MindMapNode = {
+  id: 'mm-root',
+  label: '大语言模型研究综述',
+  color: '#1a5c3a',
+  children: [
+    {
+      id: 'mm-arch',
+      label: '架构基础',
+      color: '#6366f1',
+      children: [
+        { id: 'mm-transformer', label: 'Transformer (2017)\n自注意力机制奠基', color: '#818cf8', children: [
+          { id: 'mm-encoder', label: 'Encoder 路线\nBERT · 双向理解', color: '#a5b4fc', children: [] },
+          { id: 'mm-decoder', label: 'Decoder 路线\nGPT 系列 · 自回归生成', color: '#a5b4fc', children: [] },
+          { id: 'mm-encdec', label: 'Enc-Dec 路线\nT5 · RAG 检索增强', color: '#a5b4fc', children: [] },
+        ]},
+      ],
+    },
+    {
+      id: 'mm-train',
+      label: '训练与对齐',
+      color: '#1a5c3a',
+      children: [
+        { id: 'mm-pretrain', label: '大规模预训练\nGPT-3 · 175B 参数\n规模涌现能力', color: '#34d399', children: [] },
+        { id: 'mm-sft', label: '指令微调 SFT\nInstructGPT · 遵循指令', color: '#34d399', children: [
+          { id: 'mm-rlhf', label: 'RLHF 人类对齐\n安全性 · 有用性', color: '#6ee7b7', children: [] },
+        ]},
+        { id: 'mm-efficient', label: '高效微调\nLoRA · 低秩适配\n降低 99% 训练参数', color: '#34d399', children: [] },
+      ],
+    },
+    {
+      id: 'mm-ability',
+      label: '能力增强',
+      color: '#f59e0b',
+      children: [
+        { id: 'mm-reason', label: '推理能力\nChain-of-Thought\n思维链逐步推导', color: '#fbbf24', children: [
+          { id: 'mm-math', label: '数学推理\n准确率提升 40%+', color: '#fcd34d', children: [] },
+          { id: 'mm-logic', label: '逻辑推理\n多步骤复杂问题', color: '#fcd34d', children: [] },
+        ]},
+        { id: 'mm-multimodal', label: '多模态融合\nGPT-4 · 图文理解\n视觉问答 · 图表分析', color: '#fbbf24', children: [] },
+        { id: 'mm-code', label: '代码生成\nCodex · Copilot\n自动编程助手', color: '#fbbf24', children: [] },
+      ],
+    },
+    {
+      id: 'mm-ecosystem',
+      label: '开源生态与应用',
+      color: '#ef4444',
+      children: [
+        { id: 'mm-open', label: 'LLaMA 开源系列\n小模型高性能\n社区繁荣', color: '#f87171', children: [
+          { id: 'mm-finetune', label: 'Alpaca · Vicuna\n指令微调衍生', color: '#fca5a5', children: [] },
+        ]},
+        { id: 'mm-multilang', label: 'PaLM 2 多语言\n100+ 语言支持\n跨语言迁移', color: '#f87171', children: [] },
+        { id: 'mm-rag-app', label: 'RAG 应用落地\n知识库问答\n企业搜索增强', color: '#f87171', children: [] },
+      ],
+    },
+  ],
+};
+
 /* ═══════════════════════════════════════════════════════
    主组件
    ═══════════════════════════════════════════════════════ */
 
-type ActiveTab = 'table' | 'roadmap';
+type ActiveTab = 'table' | 'mindmap' | 'roadmap';
 
 export default function LiteratureReviewPage() {
   const [papers] = useState<Paper[]>(MOCK_PAPERS);
@@ -221,6 +290,21 @@ export default function LiteratureReviewPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerated, setIsGenerated] = useState(true);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [tableData, setTableData] = useState<ComparisonRow[]>(COMPARISON_DATA);
+  const [mindMapData, setMindMapData] = useState<MindMapNode>(INITIAL_MINDMAP);
+  const [roadmapData, setRoadmapData] = useState<RoadmapEra[]>(ROADMAP_DATA);
+  const [editingNode, setEditingNode] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [tableHeaders, setTableHeaders] = useState({
+    groups: { arch: '模型架构', train: '训练范式', ability: '能力维度', feature: '特性' },
+    fields: {
+      encoderOnly: 'Encoder', decoderOnly: 'Decoder', encoderDecoder: 'Enc-Dec',
+      pretraining: '预训练', instructTuning: '指令微调', rlhf: 'RLHF',
+      reasoning: '推理增强', codeGen: '代码生成', multimodal: '多模态',
+      openSource: '开源', chineseOpt: '中文优化'
+    }
+  });
 
   const filteredPapers = useMemo(() => {
     if (!search.trim()) return papers;
@@ -263,27 +347,62 @@ export default function LiteratureReviewPage() {
   }, [selectedIds]);
 
   const selectedComparison = useMemo(
-    () => COMPARISON_DATA.filter((r) => selectedIds.has(r.paperId)),
-    [selectedIds]
+    () => tableData.filter((r) => selectedIds.has(r.paperId)),
+    [selectedIds, tableData]
   );
 
   const selectedRoadmap = useMemo(
     () =>
-      ROADMAP_DATA.map((era) => ({
+      roadmapData.map((era) => ({
         ...era,
         papers: era.papers.filter((p) => selectedIds.has(p.id)),
       })).filter((era) => era.papers.length > 0),
-    [selectedIds]
+    [selectedIds, roadmapData]
   );
 
-  /* ── 渲染：对比勾选标记 ── */
-  const Mark = ({ value }: { value: boolean }) => (
+  const toggleCell = useCallback((paperId: string, field: keyof ComparisonRow) => {
+    if (!editMode) return;
+    setTableData(prev => prev.map(r =>
+      r.paperId === paperId ? { ...r, [field]: !r[field] } : r
+    ));
+  }, [editMode]);
+
+  const startEditNode = useCallback((id: string, text: string) => {
+    setEditingNode(id);
+    setEditingText(text);
+  }, []);
+
+  const updateMindMapNode = useCallback((root: MindMapNode, id: string, newLabel: string): MindMapNode => {
+    if (root.id === id) return { ...root, label: newLabel };
+    return { ...root, children: root.children.map(c => updateMindMapNode(c, id, newLabel)) };
+  }, []);
+
+  const addMindMapChild = useCallback((parentId: string) => {
+    const addChild = (node: MindMapNode): MindMapNode => {
+      if (node.id === parentId) {
+        return { ...node, children: [...node.children, { id: `mm-${Date.now()}`, label: '新节点', children: [] }] };
+      }
+      return { ...node, children: node.children.map(addChild) };
+    };
+    setMindMapData(prev => addChild(prev));
+  }, []);
+
+  const deleteMindMapNode = useCallback((nodeId: string) => {
+    const remove = (node: MindMapNode): MindMapNode => ({
+      ...node, children: node.children.filter(c => c.id !== nodeId).map(remove)
+    });
+    setMindMapData(prev => remove(prev));
+  }, []);
+
+  /* ── 渲染：对比勾选标记（编辑模式可点击切换） ── */
+  const Mark = ({ value, paperId, field }: { value: boolean; paperId?: string; field?: keyof ComparisonRow }) => (
     <span
-      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs ${
+      onClick={() => paperId && field && toggleCell(paperId, field)}
+      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs transition-all ${
         value
           ? 'bg-primary/10 text-primary'
           : 'bg-gray-50 text-gray-300'
-      }`}
+      } ${editMode && paperId ? 'cursor-pointer hover:scale-125 hover:shadow-sm' : ''}`}
     >
       {value ? <CheckOutlined style={{ fontSize: '10px' }} /> : <CloseOutlined style={{ fontSize: '9px' }} />}
     </span>
@@ -423,6 +542,17 @@ export default function LiteratureReviewPage() {
               文献对比表
             </button>
             <button
+              onClick={() => setActiveTab('mindmap')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                activeTab === 'mindmap'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <BranchesOutlined style={{ fontSize: '12px' }} />
+              文献思维导图
+            </button>
+            <button
               onClick={() => setActiveTab('roadmap')}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 activeTab === 'roadmap'
@@ -436,10 +566,23 @@ export default function LiteratureReviewPage() {
           </div>
 
           {isGenerated && (
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
-              <DownloadOutlined style={{ fontSize: '12px' }} />
-              导出
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setEditMode(!editMode); setEditingNode(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                  editMode
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-gray-500 hover:text-primary hover:bg-primary/5'
+                }`}
+              >
+                <EditOutlined style={{ fontSize: '12px' }} />
+                {editMode ? '退出编辑' : '编辑模式'}
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors">
+                <DownloadOutlined style={{ fontSize: '12px' }} />
+                导出
+              </button>
+            </div>
           )}
         </div>
 
@@ -465,6 +608,11 @@ export default function LiteratureReviewPage() {
                 <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                   {selectedComparison.length} 篇
                 </span>
+                {editMode && (
+                  <span className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-medium animate-pulse">
+                    点击 ✓/× 切换 · 双击表头/字段编辑
+                  </span>
+                )}
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -479,34 +627,209 @@ export default function LiteratureReviewPage() {
                         年份
                       </th>
                       <th colSpan={3} className="px-3 py-2 text-center font-bold text-gray-700 border-b border-r border-gray-200 bg-blue-50/50">
-                        模型架构
+                        {editMode && editingNode === 'header-arch' ? (
+                          <input
+                            autoFocus
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => {
+                              setTableHeaders(prev => ({ ...prev, groups: { ...prev.groups, arch: editingText } }));
+                              setEditingNode(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary"
+                          />
+                        ) : (
+                          <span
+                            className={editMode ? 'cursor-text hover:bg-blue-100/50 px-2 py-1 rounded transition-colors' : ''}
+                            onDoubleClick={() => editMode && startEditNode('header-arch', tableHeaders.groups.arch)}
+                          >
+                            {tableHeaders.groups.arch}
+                          </span>
+                        )}
                       </th>
                       <th colSpan={3} className="px-3 py-2 text-center font-bold text-gray-700 border-b border-r border-gray-200 bg-green-50/50">
-                        训练范式
+                        {editMode && editingNode === 'header-train' ? (
+                          <input
+                            autoFocus
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => {
+                              setTableHeaders(prev => ({ ...prev, groups: { ...prev.groups, train: editingText } }));
+                              setEditingNode(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary"
+                          />
+                        ) : (
+                          <span
+                            className={editMode ? 'cursor-text hover:bg-green-100/50 px-2 py-1 rounded transition-colors' : ''}
+                            onDoubleClick={() => editMode && startEditNode('header-train', tableHeaders.groups.train)}
+                          >
+                            {tableHeaders.groups.train}
+                          </span>
+                        )}
                       </th>
                       <th colSpan={3} className="px-3 py-2 text-center font-bold text-gray-700 border-b border-r border-gray-200 bg-purple-50/50">
-                        能力维度
+                        {editMode && editingNode === 'header-ability' ? (
+                          <input
+                            autoFocus
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => {
+                              setTableHeaders(prev => ({ ...prev, groups: { ...prev.groups, ability: editingText } }));
+                              setEditingNode(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary"
+                          />
+                        ) : (
+                          <span
+                            className={editMode ? 'cursor-text hover:bg-purple-100/50 px-2 py-1 rounded transition-colors' : ''}
+                            onDoubleClick={() => editMode && startEditNode('header-ability', tableHeaders.groups.ability)}
+                          >
+                            {tableHeaders.groups.ability}
+                          </span>
+                        )}
                       </th>
                       <th colSpan={2} className="px-3 py-2 text-center font-bold text-gray-700 border-b border-gray-200 bg-amber-50/50">
-                        特性
+                        {editMode && editingNode === 'header-feature' ? (
+                          <input
+                            autoFocus
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => {
+                              setTableHeaders(prev => ({ ...prev, groups: { ...prev.groups, feature: editingText } }));
+                              setEditingNode(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary"
+                          />
+                        ) : (
+                          <span
+                            className={editMode ? 'cursor-text hover:bg-amber-100/50 px-2 py-1 rounded transition-colors' : ''}
+                            onDoubleClick={() => editMode && startEditNode('header-feature', tableHeaders.groups.feature)}
+                          >
+                            {tableHeaders.groups.feature}
+                          </span>
+                        )}
                       </th>
                     </tr>
                     <tr className="bg-gray-50/80 text-gray-500 font-medium">
                       {/* 模型架构 */}
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">Encoder</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">Decoder</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">Enc-Dec</th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-encoderOnly' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, encoderOnly: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-blue-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-encoderOnly', tableHeaders.fields.encoderOnly)}>{tableHeaders.fields.encoderOnly}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-decoderOnly' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, decoderOnly: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-blue-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-decoderOnly', tableHeaders.fields.decoderOnly)}>{tableHeaders.fields.decoderOnly}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-blue-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-encoderDecoder' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, encoderDecoder: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-blue-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-encoderDecoder', tableHeaders.fields.encoderDecoder)}>{tableHeaders.fields.encoderDecoder}</span>
+                        )}
+                      </th>
                       {/* 训练范式 */}
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">预训练</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">指令微调</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">RLHF</th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-pretraining' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, pretraining: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-green-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-pretraining', tableHeaders.fields.pretraining)}>{tableHeaders.fields.pretraining}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-instructTuning' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, instructTuning: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-green-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-instructTuning', tableHeaders.fields.instructTuning)}>{tableHeaders.fields.instructTuning}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-green-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-rlhf' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, rlhf: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-green-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-rlhf', tableHeaders.fields.rlhf)}>{tableHeaders.fields.rlhf}</span>
+                        )}
+                      </th>
                       {/* 能力维度 */}
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">推理增强</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">代码生成</th>
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">多模态</th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-reasoning' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, reasoning: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-purple-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-reasoning', tableHeaders.fields.reasoning)}>{tableHeaders.fields.reasoning}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-codeGen' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, codeGen: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-purple-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-codeGen', tableHeaders.fields.codeGen)}>{tableHeaders.fields.codeGen}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-purple-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-multimodal' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, multimodal: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-purple-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-multimodal', tableHeaders.fields.multimodal)}>{tableHeaders.fields.multimodal}</span>
+                        )}
+                      </th>
                       {/* 特性 */}
-                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-amber-50/30 whitespace-nowrap">开源</th>
-                      <th className="px-2 py-2 text-center border-b border-gray-200 bg-amber-50/30 whitespace-nowrap">中文优化</th>
+                      <th className="px-2 py-2 text-center border-b border-r border-gray-200 bg-amber-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-openSource' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, openSource: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-amber-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-openSource', tableHeaders.fields.openSource)}>{tableHeaders.fields.openSource}</span>
+                        )}
+                      </th>
+                      <th className="px-2 py-2 text-center border-b border-gray-200 bg-amber-50/30 whitespace-nowrap">
+                        {editMode && editingNode === 'field-chineseOpt' ? (
+                          <input autoFocus value={editingText} onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => { setTableHeaders(prev => ({ ...prev, fields: { ...prev.fields, chineseOpt: editingText } })); setEditingNode(null); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="w-full bg-transparent text-center outline-none border-b border-primary text-xs" />
+                        ) : (
+                          <span className={editMode ? 'cursor-text hover:bg-amber-100 px-1 rounded' : ''} onDoubleClick={() => editMode && startEditNode('field-chineseOpt', tableHeaders.fields.chineseOpt)}>{tableHeaders.fields.chineseOpt}</span>
+                        )}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -525,17 +848,17 @@ export default function LiteratureReviewPage() {
                         <td className="px-3 py-2.5 text-center text-gray-600 border-r border-b border-gray-100">
                           {row.year}
                         </td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.encoderOnly} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.decoderOnly} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.encoderDecoder} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.pretraining} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.instructTuning} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.rlhf} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.reasoning} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.codeGen} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.multimodal} /></td>
-                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.openSource} /></td>
-                        <td className="px-2 py-2.5 text-center border-b border-gray-100"><Mark value={row.chineseOpt} /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.encoderOnly} paperId={row.paperId} field="encoderOnly" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.decoderOnly} paperId={row.paperId} field="decoderOnly" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.encoderDecoder} paperId={row.paperId} field="encoderDecoder" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.pretraining} paperId={row.paperId} field="pretraining" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.instructTuning} paperId={row.paperId} field="instructTuning" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.rlhf} paperId={row.paperId} field="rlhf" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.reasoning} paperId={row.paperId} field="reasoning" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.codeGen} paperId={row.paperId} field="codeGen" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.multimodal} paperId={row.paperId} field="multimodal" /></td>
+                        <td className="px-2 py-2.5 text-center border-r border-b border-gray-100"><Mark value={row.openSource} paperId={row.paperId} field="openSource" /></td>
+                        <td className="px-2 py-2.5 text-center border-b border-gray-100"><Mark value={row.chineseOpt} paperId={row.paperId} field="chineseOpt" /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -551,6 +874,39 @@ export default function LiteratureReviewPage() {
                 </span>
               </div>
             </div>
+          ) : activeTab === 'mindmap' ? (
+            /* ═══ 文献思维导图 ═══ */
+            <div className="p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-gray-800">文献关系思维导图</h3>
+                {editMode && (
+                  <span className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-medium animate-pulse">
+                    双击编辑 · 点 + 添加 · 点 × 删除
+                  </span>
+                )}
+              </div>
+              <div className="overflow-x-auto pb-4">
+                <div className="inline-flex items-start min-w-max">
+                  <MindMapBranch
+                    node={mindMapData}
+                    isRoot
+                    editMode={editMode}
+                    editingNode={editingNode}
+                    editingText={editingText}
+                    onStartEdit={startEditNode}
+                    onChangeText={setEditingText}
+                    onCommitEdit={() => {
+                      if (editingNode) {
+                        setMindMapData(prev => updateMindMapNode(prev, editingNode, editingText));
+                        setEditingNode(null);
+                      }
+                    }}
+                    onAddChild={addMindMapChild}
+                    onDelete={deleteMindMapNode}
+                  />
+                </div>
+              </div>
+            </div>
           ) : (
             /* ═══ 研究脉络图 ═══ */
             <div className="p-5">
@@ -559,6 +915,11 @@ export default function LiteratureReviewPage() {
                 <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                   {selectedRoadmap.reduce((sum, era) => sum + era.papers.length, 0)} 篇文献
                 </span>
+                {editMode && (
+                  <span className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-medium animate-pulse">
+                    双击标题/论文名/标签编辑
+                  </span>
+                )}
               </div>
 
               {/* 垂直时间线 */}
@@ -580,7 +941,26 @@ export default function LiteratureReviewPage() {
                     <div className="ml-6 mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-800">{era.year}</span>
-                        <span className="text-[11px] font-semibold text-gray-600">{era.title}</span>
+                        {editMode && editingNode === `era-${era.year}` ? (
+                          <input
+                            autoFocus
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => {
+                              setRoadmapData(prev => prev.map(e => e.year === era.year ? { ...e, title: editingText } : e));
+                              setEditingNode(null);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                            className="text-[11px] font-semibold text-gray-600 bg-white border border-primary/30 rounded px-1.5 py-0.5 outline-none focus:border-primary"
+                          />
+                        ) : (
+                          <span
+                            className={`text-[11px] font-semibold text-gray-600 ${editMode ? 'cursor-text hover:bg-amber-50 px-1 rounded transition-colors' : ''}`}
+                            onDoubleClick={() => startEditNode(`era-${era.year}`, era.title)}
+                          >
+                            {era.title}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -607,25 +987,84 @@ export default function LiteratureReviewPage() {
                                 {paper.name.charAt(0)}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <h4 className="text-xs font-bold text-gray-800 group-hover:text-primary transition-colors">
-                                  {paper.name}
-                                </h4>
-                                <span
-                                  className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded-md font-medium"
-                                  style={{
-                                    background: `${era.color}15`,
-                                    color: era.color,
-                                  }}
-                                >
-                                  {paper.tag}
-                                </span>
+                                {editMode && editingNode === `paper-${paper.id}-name` ? (
+                                  <input
+                                    autoFocus
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    onBlur={() => {
+                                      setRoadmapData(prev => prev.map(e => e.year === era.year ? {
+                                        ...e,
+                                        papers: e.papers.map(p => p.id === paper.id ? { ...p, name: editingText } : p)
+                                      } : e));
+                                      setEditingNode(null);
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                    className="w-full text-xs font-bold text-gray-800 bg-white border border-primary/30 rounded px-1.5 py-0.5 outline-none focus:border-primary"
+                                  />
+                                ) : (
+                                  <h4
+                                    className={`text-xs font-bold text-gray-800 group-hover:text-primary transition-colors ${editMode ? 'cursor-text hover:bg-amber-50 px-1 rounded' : ''}`}
+                                    onDoubleClick={() => editMode && startEditNode(`paper-${paper.id}-name`, paper.name)}
+                                  >
+                                    {paper.name}
+                                  </h4>
+                                )}
+                                {editMode && editingNode === `paper-${paper.id}-tag` ? (
+                                  <input
+                                    autoFocus
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    onBlur={() => {
+                                      setRoadmapData(prev => prev.map(e => e.year === era.year ? {
+                                        ...e,
+                                        papers: e.papers.map(p => p.id === paper.id ? { ...p, tag: editingText } : p)
+                                      } : e));
+                                      setEditingNode(null);
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                    className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded-md font-medium bg-white border border-primary/30 outline-none focus:border-primary"
+                                    style={{ color: era.color }}
+                                  />
+                                ) : (
+                                  <span
+                                    className={`inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded-md font-medium ${editMode ? 'cursor-text hover:opacity-80' : ''}`}
+                                    style={{
+                                      background: `${era.color}15`,
+                                      color: era.color,
+                                    }}
+                                    onDoubleClick={() => editMode && startEditNode(`paper-${paper.id}-tag`, paper.tag)}
+                                  >
+                                    {paper.tag}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
                             {fullPaper && (
-                              <p className="mt-2.5 text-[11px] text-gray-500 leading-relaxed line-clamp-3">
-                                {fullPaper.abstract}
-                              </p>
+                              editMode && editingNode === `paper-${paper.id}-abstract` ? (
+                                <textarea
+                                  autoFocus
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  onBlur={() => {
+                                    setRoadmapData(prev => prev.map(e => e.year === era.year ? {
+                                      ...e,
+                                      papers: e.papers.map(p => p.id === paper.id ? { ...p, abstract: editingText } : p)
+                                    } : e));
+                                    setEditingNode(null);
+                                  }}
+                                  rows={3}
+                                  className="mt-2.5 w-full text-[11px] text-gray-500 leading-relaxed bg-white border border-primary/30 rounded px-2 py-1 outline-none focus:border-primary resize-none"
+                                />
+                              ) : (
+                                <p 
+                                  className={`mt-2.5 text-[11px] text-gray-500 leading-relaxed line-clamp-3 ${editMode ? 'cursor-text hover:bg-amber-50 px-2 py-1 rounded transition-colors' : ''}`}
+                                  onDoubleClick={() => editMode && startEditNode(`paper-${paper.id}-abstract`, paper.abstract || fullPaper.abstract)}
+                                >
+                                  {paper.abstract || fullPaper.abstract}
+                                </p>
+                              )
                             )}
 
                             {/* 连线指示器 */}
@@ -683,6 +1122,132 @@ export default function LiteratureReviewPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   思维导图递归分支
+   ═══════════════════════════════════════════════════════ */
+
+function MindMapBranch({
+  node,
+  isRoot = false,
+  editMode,
+  editingNode,
+  editingText,
+  onStartEdit,
+  onChangeText,
+  onCommitEdit,
+  onAddChild,
+  onDelete,
+}: {
+  node: MindMapNode;
+  isRoot?: boolean;
+  editMode: boolean;
+  editingNode: string | null;
+  editingText: string;
+  onStartEdit: (id: string, text: string) => void;
+  onChangeText: (text: string) => void;
+  onCommitEdit: () => void;
+  onAddChild: (parentId: string) => void;
+  onDelete: (nodeId: string) => void;
+}) {
+  const color = node.color || '#6b7280';
+  const isEditing = editingNode === node.id;
+  const hasChildren = node.children.length > 0;
+
+  return (
+    <div className="flex items-center">
+      {/* 节点卡片 */}
+      <div className="relative group shrink-0">
+        <div
+          className={`relative rounded-xl border-2 transition-all duration-150 ${
+            isRoot
+              ? 'px-5 py-3.5 min-w-[160px] shadow-md'
+              : 'px-3 py-2 min-w-[120px]'
+          } ${isEditing ? 'border-primary shadow-md' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+          style={{ borderLeftColor: color, borderLeftWidth: '3px', background: isRoot ? `${color}08` : '#fff' }}
+          onDoubleClick={() => onStartEdit(node.id, node.label)}
+        >
+          {isEditing ? (
+            <textarea
+              autoFocus
+              value={editingText}
+              onChange={(e) => onChangeText(e.target.value)}
+              onBlur={onCommitEdit}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onCommitEdit(); } }}
+              className="w-full bg-transparent text-xs text-gray-800 outline-none resize-none leading-relaxed min-w-[100px]"
+              rows={editingText.split('\n').length}
+            />
+          ) : (
+            <div className={`whitespace-pre-wrap leading-relaxed ${isRoot ? 'text-sm font-bold' : 'text-[11px]'} text-gray-800`}>
+              {node.label.split('\n').map((line, i) => (
+                <div key={i} className={i === 0 ? (isRoot ? 'font-bold' : 'font-semibold') : 'text-gray-500 text-[10px]'}>
+                  {line}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 编辑模式操作按钮 */}
+        {editMode && !isRoot && (
+          <button
+            onClick={() => onDelete(node.id)}
+            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-400 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 z-10"
+          >
+            <CloseOutlined style={{ fontSize: '7px' }} />
+          </button>
+        )}
+        {editMode && (
+          <button
+            onClick={() => onAddChild(node.id)}
+            className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/80 z-10"
+          >
+            <PlusOutlined style={{ fontSize: '7px' }} />
+          </button>
+        )}
+      </div>
+
+      {/* 子节点 */}
+      {hasChildren && (
+        <div className="flex items-center ml-0">
+          {/* 父到分叉点水平线 */}
+          <svg width="28" height="2" className="shrink-0" style={{ overflow: 'visible' }}>
+            <line x1="0" y1="1" x2="28" y2="1" stroke={color} strokeWidth="1.5" strokeOpacity="0.3" />
+          </svg>
+
+          {/* 子节点列 + 垂直连线 */}
+          <div className="flex flex-col">
+            {node.children.map((child, i) => (
+              <div key={child.id} className="flex items-stretch">
+                {/* 连线片段 */}
+                <div className="flex flex-col items-center w-4 shrink-0">
+                  <div className={`w-px flex-1 ${i === 0 ? '' : ''}`} style={i > 0 ? { background: `${color}40` } : {}} />
+                  <div className="w-full h-px shrink-0" style={{ background: `${color}40` }} />
+                  <div className={`w-px flex-1`} style={i < node.children.length - 1 ? { background: `${color}40` } : {}} />
+                </div>
+
+                {/* 递归 */}
+                <div className="py-1.5">
+                  <MindMapBranch
+                    node={child}
+                    editMode={editMode}
+                    editingNode={editingNode}
+                    editingText={editingText}
+                    onStartEdit={onStartEdit}
+                    onChangeText={onChangeText}
+                    onCommitEdit={onCommitEdit}
+                    onAddChild={onAddChild}
+                    onDelete={onDelete}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

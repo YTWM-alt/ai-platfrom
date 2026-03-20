@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   BulbOutlined,
   SendOutlined,
@@ -166,12 +166,16 @@ const INITIAL_MESSAGES: ChatMessage[] = [
    ═══════════════════════════════════════════════════════ */
 
 export default function InnovationPage() {
-  const [tree] = useState<InnovationNode>(MOCK_TREE);
+  const [tree, setTree] = useState<InnovationNode>(MOCK_TREE);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [treeExpanded, setTreeExpanded] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [treeExpanded, setTreeExpanded] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [editingNode, setEditingNode] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<'title' | 'description' | 'detail' | null>(null);
+  const [editingText, setEditingText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -187,7 +191,29 @@ export default function InnovationPage() {
     return null;
   }, []);
 
-  const selectedNode = selectedId ? findNode(tree, selectedId) : null;
+  const selectedNode = useMemo(() => (selectedId ? findNode(tree, selectedId) : null), [tree, selectedId, findNode]);
+
+  const updateNode = useCallback((nodeId: string, field: 'title' | 'description' | 'detail', value: string) => {
+    const update = (node: InnovationNode): InnovationNode => {
+      if (node.id === nodeId) return { ...node, [field]: value };
+      return { ...node, children: node.children.map(update) };
+    };
+    setTree(prev => update(prev));
+  }, []);
+
+  const startEdit = useCallback((nodeId: string, field: 'title' | 'description' | 'detail', text: string) => {
+    setEditingNode(nodeId);
+    setEditingField(field);
+    setEditingText(text);
+  }, []);
+
+  const commitEdit = useCallback(() => {
+    if (editingNode && editingField) {
+      updateNode(editingNode, editingField, editingText);
+    }
+    setEditingNode(null);
+    setEditingField(null);
+  }, [editingNode, editingField, editingText, updateNode]);
 
   const handleSend = useCallback(() => {
     if (!input.trim()) return;
@@ -238,27 +264,61 @@ export default function InnovationPage() {
               <p className="text-[10px] text-gray-400">点击节点查看详情 · 与 AI 对话迭代</p>
             </div>
           </div>
-          <button
-            onClick={() => setTreeExpanded(!treeExpanded)}
-            className="flex items-center gap-1 px-2.5 py-1 text-[11px] text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
-          >
-            {treeExpanded ? <CompressOutlined style={{ fontSize: '11px' }} /> : <ExpandOutlined style={{ fontSize: '11px' }} />}
-            {treeExpanded ? '收起树' : '展开树'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setEditMode(!editMode); setEditingNode(null); }}
+              className={`flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg transition-colors ${
+                editMode
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-gray-500 hover:text-primary hover:bg-primary/5'
+              }`}
+            >
+              {editMode ? '退出编辑' : '编辑模式'}
+            </button>
+            <button
+              onClick={() => setTreeExpanded(!treeExpanded)}
+              className="flex items-center gap-1 px-2.5 py-1 text-[11px] text-gray-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+            >
+              {treeExpanded ? <CompressOutlined style={{ fontSize: '11px' }} /> : <ExpandOutlined style={{ fontSize: '11px' }} />}
+              {treeExpanded ? '收起树' : '展开树'}
+            </button>
+          </div>
         </div>
 
         {/* 树 + 详情区 */}
         <div className="flex-1 overflow-auto" style={{ background: 'radial-gradient(circle, #e5e7eb 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
           {treeExpanded && (
             <div className="p-6 overflow-x-auto">
-              <TreeBranch node={tree} selectedId={selectedId} onSelect={setSelectedId} isRoot />
+              <TreeBranch 
+                node={tree} 
+                selectedId={selectedId} 
+                onSelect={setSelectedId} 
+                editMode={editMode}
+                editingNode={editingNode}
+                editingField={editingField}
+                editingText={editingText}
+                onStartEdit={startEdit}
+                onChangeText={setEditingText}
+                onCommitEdit={commitEdit}
+                isRoot 
+              />
             </div>
           )}
 
           {/* 详情卡片 */}
           {selectedNode && (
             <div className="mx-5 mb-5">
-              <DetailCard node={selectedNode} onClose={() => setSelectedId(null)} />
+              <DetailCard 
+                node={selectedNode} 
+                onClose={() => setSelectedId(null)}
+                editMode={editMode}
+                editingNode={editingNode}
+                editingField={editingField}
+                editingText={editingText}
+                onStartEdit={startEdit}
+                onChangeText={setEditingText}
+                onCommitEdit={commitEdit}
+              />
             </div>
           )}
 
@@ -408,11 +468,25 @@ function TreeBranch({
   node,
   selectedId,
   onSelect,
+  editMode,
+  editingNode,
+  editingField,
+  editingText,
+  onStartEdit,
+  onChangeText,
+  onCommitEdit,
   isRoot = false,
 }: {
   node: InnovationNode;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  editMode: boolean;
+  editingNode: string | null;
+  editingField: 'title' | 'description' | 'detail' | null;
+  editingText: string;
+  onStartEdit: (nodeId: string, field: 'title' | 'description' | 'detail', text: string) => void;
+  onChangeText: (text: string) => void;
+  onCommitEdit: () => void;
   isRoot?: boolean;
 }) {
   const status = STATUS_CONFIG[node.status];
@@ -476,7 +550,18 @@ function TreeBranch({
 
                 {/* 递归子树 */}
                 <div className="py-2">
-                  <TreeBranch node={child} selectedId={selectedId} onSelect={onSelect} />
+                  <TreeBranch 
+                    node={child} 
+                    selectedId={selectedId} 
+                    onSelect={onSelect}
+                    editMode={editMode}
+                    editingNode={editingNode}
+                    editingField={editingField}
+                    editingText={editingText}
+                    onStartEdit={onStartEdit}
+                    onChangeText={onChangeText}
+                    onCommitEdit={onCommitEdit}
+                  />
                 </div>
               </div>
             ))}
@@ -491,7 +576,27 @@ function TreeBranch({
    详情卡片
    ═══════════════════════════════════════════════════════ */
 
-function DetailCard({ node, onClose }: { node: InnovationNode; onClose: () => void }) {
+function DetailCard({ 
+  node, 
+  onClose,
+  editMode,
+  editingNode,
+  editingField,
+  editingText,
+  onStartEdit,
+  onChangeText,
+  onCommitEdit,
+}: { 
+  node: InnovationNode; 
+  onClose: () => void;
+  editMode: boolean;
+  editingNode: string | null;
+  editingField: 'title' | 'description' | 'detail' | null;
+  editingText: string;
+  onStartEdit: (nodeId: string, field: 'title' | 'description' | 'detail', text: string) => void;
+  onChangeText: (text: string) => void;
+  onCommitEdit: () => void;
+}) {
   const status = STATUS_CONFIG[node.status];
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
@@ -511,7 +616,23 @@ function DetailCard({ node, onClose }: { node: InnovationNode; onClose: () => vo
                 {node.id}
               </span>
             </div>
-            <h3 className="text-base font-bold text-gray-900">{node.title}</h3>
+            {editMode && editingNode === node.id && editingField === 'title' ? (
+              <input
+                autoFocus
+                value={editingText}
+                onChange={(e) => onChangeText(e.target.value)}
+                onBlur={onCommitEdit}
+                onKeyDown={(e) => { if (e.key === 'Enter') onCommitEdit(); }}
+                className="text-base font-bold text-gray-900 bg-white border border-primary/30 rounded px-2 py-1 outline-none focus:border-primary w-full"
+              />
+            ) : (
+              <h3 
+                className={`text-base font-bold text-gray-900 ${editMode ? 'cursor-text hover:bg-amber-50 px-2 py-1 rounded transition-colors' : ''}`}
+                onDoubleClick={() => editMode && onStartEdit(node.id, 'title', node.title)}
+              >
+                {node.title}
+              </h3>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -521,7 +642,23 @@ function DetailCard({ node, onClose }: { node: InnovationNode; onClose: () => vo
           </button>
         </div>
 
-        <p className="text-xs text-gray-600 leading-relaxed mb-4">{node.detail}</p>
+        {editMode && editingNode === node.id && editingField === 'detail' ? (
+          <textarea
+            autoFocus
+            value={editingText}
+            onChange={(e) => onChangeText(e.target.value)}
+            onBlur={onCommitEdit}
+            rows={4}
+            className="w-full text-xs text-gray-600 leading-relaxed mb-4 bg-white border border-primary/30 rounded px-2 py-1 outline-none focus:border-primary resize-none"
+          />
+        ) : (
+          <p 
+            className={`text-xs text-gray-600 leading-relaxed mb-4 ${editMode ? 'cursor-text hover:bg-amber-50 px-2 py-1 rounded transition-colors' : ''}`}
+            onDoubleClick={() => editMode && onStartEdit(node.id, 'detail', node.detail)}
+          >
+            {node.detail}
+          </p>
+        )}
 
         {/* 标签 */}
         <div className="flex items-center gap-1.5 mb-4">
