@@ -1,5 +1,5 @@
 ## 改动记录✨
-### 最新记录 - 项目功能扩展与组件完善
+### 总的最新记录 - 项目功能扩展与组件完善
 - 新增项目管理页面路由分组 `(projects)` 及相关页面
 - 新增 AI 代码页面完整组件（CodeAiChat、CodeFileExplorer、CodeLayout、CodeOutputPreview、CodePythonEditor）
 - 新增创新亮点页面组件（InnovationPage）
