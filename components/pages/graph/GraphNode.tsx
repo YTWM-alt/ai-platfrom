@@ -19,20 +19,25 @@ const GraphNode = ({ data, selected, dragging}: NodeProps<GraphNodeData>) => {
   // 呼吸灯效果 (仅对 Root 或 Highlighted 生效)
   const pulseEffect = (isRoot || isHighlighted) ? 'animate-pulse-slow' : '';
 
-  // 颜色主题（绿白为主）
-  // Root: 绿底蓝字
-  // Highlighted: 蓝底黑字
-  // Normal: 白底绿字（玻璃质感）
+
+  // 颜色主题（统一为高级绿体系）
+  // Root根节点：主色深绿底 + 白字，自带微弱的深绿光晕
+  // Highlighted选中/高亮：亮绿色底 + 白字 + 绿色光晕
+  // Normal普通节点：15px 范围的翠绿光晕
   let colorTheme = '';
   if (isRoot) {
-    colorTheme = 'bg-green-600 text-blue-500 border-green-300/50';
+    // 【深绿光晕】：把范围拉大到 30px，透明度直接拉高到 0.8 甚至 0.9，才能透出浓郁的绿光
+    colorTheme = 'bg-[#1a5c3a]! text-white! border-[#14532d]! hover:shadow-[0_0_30px_rgba(26,92,58,0.85)]!';
   } else if (isHighlighted) {
-    colorTheme = 'bg-blue-500 text-black border-black/20 shadow-[0_0_20px_rgba(59,130,246,0.4)]';
+    // 【亮绿光晕】：范围 25px，透明度 0.8
+    colorTheme = 'bg-emerald-500! text-white! border-emerald-400! hover:shadow-[0_0_25px_rgba(16,185,129,0.8)]!';
   } else {
-    colorTheme = 'bg-white/80 text-green-700 border-green-200 hover:border-green-300/50 hover:bg-white/95';
+    // 【悬停光晕】：普通节点悬停时稍微调亮一点
+    colorTheme = 'bg-white/90! text-[#1a5c3a]! border-emerald-200! hover:border-emerald-400! hover:bg-white! hover:shadow-[0_0_20px_rgba(16,185,129,0.6)]!';
   }
 
-  const dragEffect = dragging ? 'ring-2 ring-[#FFD700] scale-105' : '';
+  //外圈光晕主色深绿
+ const dragEffect = dragging ? 'shadow-[0_0_30px_rgba(52,211,153,0.5)]! scale-110 z-[100]' : '';
 
   return (
     <div className={`${baseStyle} ${colorTheme} ${pulseEffect} ${dragEffect} w-full h-full overflow-hidden p-2`}>

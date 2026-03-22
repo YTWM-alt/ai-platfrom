@@ -26,7 +26,11 @@ export default function AIReaderPage() {
               使用 z-50 确保它能盖住搜索框；
               采用绝对定位后，它弹出时不会推挤右侧内容，中间的搜索框依然是屏幕物理中心 */}
           <div className="z-50">
-            <HistorySidebar />
+            <HistorySidebar 
+              position="left" 
+              shadowClassName="shadow-[4px_0_24px_rgba(0,0,0,0.08)]!"
+              borderClassName="border-r-gray-600!"
+            />
           </div>
 
           {/* 主内容区：使用 flex-1 自动撑满全球导航栏右侧的空间 */}
