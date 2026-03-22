@@ -2,14 +2,15 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { NodeMouseHandler, applyNodeChanges, NodeChange } from 'reactflow';
-import { Search, ArrowRight, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, Search, ArrowRight, HelpCircle, X } from 'lucide-react';
 import FlowCanvas from './FlowCanvas';
 import SidebarRight from './SidebarRight';
 import { Paper } from '@/types/pages/paper';
 import { GraphNode, GraphEdge, FlowData } from '@/types/pages/graph';
-import { HistoryTrigger } from '@/components/pages/common/HistoryTrigger';
 import { HistorySidebar } from '@/components/pages/common/HistorySidebar';
 import { CaretRightOutlined, CaretLeftOutlined } from '@ant-design/icons';
+import { useHistory } from '@/context/HistoryContext';
+import { HistoryTrigger } from '@/components/pages/common/HistoryTrigger';
 
 // 模拟生成论文数据
 const createDummyPaper = (title: string): Paper => ({
@@ -26,20 +27,27 @@ export default function SourceGraphContainer() {
   // 状态管理
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
+
   const [searchVal, setSearchVal] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+
   const [isRightOpen, setIsRightOpen] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [past, setPast] = useState<FlowData[]>([]);
   const [future, setFuture] = useState<FlowData[]>([]);
 
+  const { historyState } = useHistory();
+  const isHistoryOpen = historyState.isOpen;
+
   // 引用以保持最新的节点状态供回调使用
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
   const isTimeTravelRef = useRef(false);
- const skipHistoryRef = useRef(false);
+  const skipHistoryRef = useRef(false);
+  
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
   useEffect(() => { edgesRef.current = edges; }, [edges]);
 
@@ -138,7 +146,8 @@ export default function SourceGraphContainer() {
         source: selectedNode.id,
         target: newNodeId,
         animated: true,
-        style: { stroke: '#FFD700', strokeWidth: 2 }
+        // 把 '#FFD700' 改为你的主色或亮绿色
+        style: { stroke: '#10b981', strokeWidth: 2 } 
       });
     }
 
@@ -305,90 +314,158 @@ export default function SourceGraphContainer() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUndo, handleRedo, handleDeleteNode]);
   return (
-    <div className="relative h-full w-full bg-white overflow-hidden font-sans">
-      
-      {/* 1. 右上角历史记录面板 */}
-      <div className="absolute top-4 right-4 z-50">
-        <HistoryTrigger module="tree" title="图谱记录" className="relative! top-0! left-0! bg-white/80 backdrop-blur shadow-sm hover:shadow-md border border-slate-200" />
-      </div>
-
-      {/* 历史记录侧边栏 (绝对定位在右侧) */}
-      <div className="absolute right-0 top-0 h-full z-[60] pointer-events-none flex justify-end">
-        <div className="pointer-events-auto h-full">
-            <HistorySidebar position="right" className="shadow-[-4px_0_20px_rgba(0,0,0,0.05)] bg-white/95 backdrop-blur-md" />
+    <div className="relative h-full w-full bg-white  overflow-hidden font-sans flex">
+      {/* 左侧：历史记录侧边栏 */}
+      <div 
+        className={`h-full shrink-0 transition-all duration-300 ease-in-out ${isHistoryOpen ? 'w-80 border-r-gray-600! shadow-[4px_0_24px_rgba(0,0,0,0.08)]!' : 'w-0 border-r-0'}`}
+        style={{ overflow: 'hidden' }} // 必须有这个，宽度变为0时才能隐藏内部内容
+      >
+        <div className="w-80 h-full">
+          <HistorySidebar 
+            position="left" 
+            shadowClassName="shadow-[4px_0_24px_rgba(0,0,0,0.08)]!"
+            borderClassName="border-none"
+            bgClassName="bg-white/95! backdrop-blur-xl!"
+          />
         </div>
       </div>
 
-      {/* 2. 主画布 */}
-      <main className="absolute inset-0 z-10">
-        <FlowCanvas 
-          nodes={nodes} 
-          edges={edges} 
-          onNodeClick={handleNodeClick}
-          onNodeContextMenu={handleNodeContextMenu}
-          onNodesChange={onNodesChange}
-          showHelp={showHelp}
-          onToggleHelp={() => setShowHelp(prev => !prev)}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          onDelete={handleDeleteNode}
-          canUndo={past.length > 0}
-          canRedo={future.length > 0}
-        />
-      </main>
 
-      {/* 3. 底部胶囊输入框 (核心交互) */}
-      <div 
-        className={`absolute left-0 right-0 z-40 flex justify-center transition-all duration-700 ease-in-out
+      {/* 右侧：主工作区 */}
+      <div className="flex-1 relative h-full overflow-hidden">
+        
+        {/* 1. 画布底板 */}
+        <main className="absolute inset-0 z-10">
+          <FlowCanvas 
+            nodes={nodes} 
+            edges={edges} 
+            onNodeClick={handleNodeClick}
+            onNodeContextMenu={handleNodeContextMenu}
+            onNodesChange={onNodesChange}
+            showHelp={showHelp}
+            onToggleHelp={() => setShowHelp(prev => !prev)}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onDelete={handleDeleteNode}
+            canUndo={past.length > 0}
+            canRedo={future.length > 0}
+          />
+        </main>
+
+      {/* 左下角帮助按钮 (移出 ReactFlow，手动控制 z-index 和 translate) */}
+        {/* left-6 永远是相对于新画布的边缘 */}
+        <div className="absolute bottom-6 left-6 !z-[100] pointer-events-auto">
+          <div className="bg-white/90 backdrop-blur-md shadow-sm border border-slate-200 rounded-full overflow-hidden">
+             <button 
+               onClick={() => setShowHelp(!showHelp)}
+               className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+             >
+               {showHelp ? <X size={20} /> : <HelpCircle size={20} />}
+             </button>
+          </div>
+        </div>
+
+        {/* 3. 帮助说明窗口 */}
+        {showHelp && (
+          <div className="absolute bottom-20 left-6 w-80 !z-[100]">
+            <div className="bg-white/90 backdrop-blur-md shadow-2xl rounded-xl border border-slate-100 p-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-slate-800">如何阅读图表</h3>
+                <button onClick={() => setShowHelp(!showHelp)} className="text-slate-400 hover:text-slate-600">
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="text-sm text-slate-500 mb-4 leading-relaxed">交互式知识图谱指南：</p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span><b>点击</b>节点展开更多关联</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span>
+                    <b>右键</b>点击可选中/锁定节点
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span>
+                    <b>拖拽</b>可自由调整节点位置
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span>
+                    <b>Delete</b> 删除选中节点
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span>
+                    <b>Ctrl+Z / Ctrl+Y</b> 撤销与前进
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-slate-700">
+                  <span className="mt-1 shrink-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span>底部输入新词可与选中节点<b>建立连接</b></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+      {/* 4. 底部搜索框 */}
+        <div 
+          className={`absolute z-40 flex justify-center transition-all duration-300 ease-in-out
           ${hasSearched ? 'bottom-8' : 'bottom-1/2 translate-y-1/2'}
-        `}
-      >
-        <form 
-          onSubmit={handleSearch}
-          className={`
-            relative flex items-center w-full max-w-xl bg-white/80 backdrop-blur-xl 
-            border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)]
-            rounded-full transition-all duration-300
-            ${loading ? 'scale-95 opacity-90' : 'hover:scale-105 hover:shadow-[0_12px_40px_rgba(255,215,0,0.2)]'}
+          /* 根据左右面板的状态，动态调整搜素框的活动范围 */
+          ${isHistoryOpen ? 'left-8' : 'left-0'} 
+          ${isRightOpen ? 'right-96' : 'right-0'}
+            pointer-events-none px-20
           `}
         >
-          <div className="pl-6 text-slate-400">
-            {loading ? <Sparkles className="animate-spin text-[#FFD700]" size={20} /> : <Search size={20} />}
-          </div>
-          <input 
-            type="text" 
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            placeholder={hasSearched ? "输入关键词继续发散..." : "输入核心词，开启知识探索..."}
-            className="w-full h-14 px-4 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 font-medium text-lg"
-          />
-          <button 
-            type="submit"
-            className="mr-2 w-10 h-10 flex items-center justify-center bg-[#FFD700] hover:bg-[#FFC700] text-black rounded-full transition-colors shadow-sm"
+          <form 
+            onSubmit={handleSearch}
+            className={`
+              pointer-events-auto relative flex items-center w-full max-w-xl bg-white/90 backdrop-blur-xl 
+              border border-emerald-100/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+              rounded-full transition-all duration-300
+              ${loading ? 'scale-95 opacity-90' : 'hover:scale-105 hover:shadow-[0_12px_40px_rgba(26,92,58,0.15)]'}
+            `}
           >
-            <ArrowRight size={20} strokeWidth={2.5} />
-          </button>
-        </form>
-      </div>
-
-      {/* 4. 右侧详情栏 (保留但默认隐藏) */}
-      <div className="absolute right-0 top-0 h-full z-30 pointer-events-none flex justify-end">
-         <div className={`pointer-events-auto transition-all duration-300 bg-white h-full shadow-[-4px_0_20px_rgba(0,0,0,0.05)] flex
-            ${isRightOpen ? 'translate-x-0' : 'translate-x-full'}
-         `}>
-            {/* 收起按钮 */}
-            <button 
-                onClick={() => setIsRightOpen(!isRightOpen)}
-                className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-12 bg-white rounded-l-md shadow-[-2px_0_5px_rgba(0,0,0,0.05)] flex items-center justify-center text-slate-400 hover:text-[#FFD700] cursor-pointer border border-r-0 border-slate-100"
-            >
-                {isRightOpen ? <CaretRightOutlined /> : <CaretLeftOutlined />}
-            </button>
-            
-            <div className="w-96 h-full overflow-hidden">
-                <SidebarRight paper={selectedPaper} />
+            <div className="pl-6 text-slate-400">
+              {loading ? <Sparkles className="animate-spin text-emerald-500" size={20} /> : <Search size={20} />}
             </div>
-         </div>
-      </div>
+            <input 
+              type="text" 
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              placeholder={hasSearched ? "输入关键词继续发散..." : "输入核心词，开启知识探索..."}
+              className="w-full h-14 px-4 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 font-medium text-lg"
+            />
+            <button type="submit" className="mr-3 shrink-0 w-9 h-9 flex items-center justify-center bg-[#1a5c3a] hover:bg-[#166534] text-white rounded-full transition-colors shadow-sm">
+              <ArrowRight size={18} strokeWidth={2.5} />
+            </button>
+          </form>
+        </div>
+
+        {/* 5. 右侧详情栏 (保持在画布内的绝对定位) */}
+        <div className="absolute right-0 top-0 h-full z-30 pointer-events-none flex justify-end">
+           <div className={`pointer-events-auto transition-all duration-300 bg-white h-full shadow-[-4px_0_20px_rgba(0,0,0,0.05)] flex
+              ${isRightOpen ? 'translate-x-0' : 'translate-x-full'}
+           `}>
+              <button 
+                  onClick={() => setIsRightOpen(!isRightOpen)}
+                  className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-12 bg-white rounded-l-md shadow-[-2px_0_5px_rgba(0,0,0,0.05)] flex items-center justify-center text-slate-400 hover:text-[#1a5c3a] cursor-pointer border border-r-0 border-slate-100"
+              >
+                  {isRightOpen ? <CaretRightOutlined /> : <CaretLeftOutlined />}
+              </button>
+              <div className="w-96 h-full overflow-hidden">
+                  <SidebarRight paper={selectedPaper} />
+              </div>
+           </div>
+        </div>
+      </div> 
     </div>
   );
 }

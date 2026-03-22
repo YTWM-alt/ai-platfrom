@@ -3,13 +3,23 @@
 import { useHistory } from '@/context/HistoryContext';
 import { LeftOutlined, RightOutlined, SearchOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
+import { ChevronRight, ChevronLeft, Search } from 'lucide-react';
 
 interface HistorySidebarProps {
   className?: string;
   position?: 'left' | 'right';
+  shadowClassName?: string;
+  borderClassName?: string;
+  bgClassName?: string;
 }
 
-export const HistorySidebar = ({ className = '', position = 'left' }: HistorySidebarProps) => {
+export const HistorySidebar = ({ 
+  className = '', 
+  position = 'left',
+  shadowClassName,
+  borderClassName,
+  bgClassName
+}: HistorySidebarProps) => {
   const { historyState, closeHistory, getModuleHistory } = useHistory();
   const { isOpen, activeModule, title } = historyState;
 
@@ -20,11 +30,14 @@ export const HistorySidebar = ({ className = '', position = 'left' }: HistorySid
 
   return (
     <div className={`w-80 h-full flex flex-col animate-in duration-300
-      ${isRight ? 'border-l border-gray-200 slide-in-from-right' : 'border-r border-gray-200 slide-in-from-left'}
+      ${borderClassName || (isRight ? 'border-l border-gray-200' : 'border-r border-gray-200')}
+      ${shadowClassName || ''}
+      ${bgClassName || ''}
+      ${isRight ? 'slide-in-from-right' : 'slide-in-from-left'}
       ${className}
     `}
       style={{
-        background: `
+        background: bgClassName ? undefined : `
           radial-gradient(circle at top right, rgba(200, 253, 209, 0.08), transparent 60%),
           radial-gradient(circle at bottom left, rgba(200, 253, 232, 0.06), transparent 60%),
           linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(200, 253, 209, 0.03) 50%, rgba(200, 253, 232, 0.03) 100%)

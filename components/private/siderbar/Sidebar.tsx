@@ -109,17 +109,17 @@ export default function Sidebar() {
       {projectName && (
         <div className={`shrink-0 px-3 py-2 border-b border-gray-100 ${collapsed ? 'flex justify-center' : ''}`}>
           {collapsed ? (
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold" title={projectName}>
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-[14px] font-bold" title={projectName}>
               {projectName.charAt(0)}
             </div>
           ) : (
             <div className="flex items-center gap-2 px-1">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-[14px] font-bold shrink-0">
                 {projectName.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-gray-400 leading-none mb-0.5">当前项目</p>
-                <p className="text-xs font-semibold text-gray-700 truncate leading-tight">{projectName}</p>
+                <p className="text-[13px] text-gray-400 leading-none mb-0.5">当前项目</p>
+                <p className="text-[12px] font-bold! text-gray-700! truncate leading-tight ">{projectName}</p>
               </div>
             </div>
           )}

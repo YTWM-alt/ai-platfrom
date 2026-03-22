@@ -24,7 +24,11 @@ export default function SearchPage() {
     <div className="flex h-screen w-full overflow-hidden bg-mesh-green">
       {/* 历史侧边栏 */}
       <div className="z-50">
-        <HistorySidebar />
+        <HistorySidebar 
+          position="left" 
+          shadowClassName="shadow-[4px_0_24px_rgba(0,0,0,0.08)]!"
+          borderClassName="border-r-gray-600!"
+        />
       </div>
 
       {/* 主内容区：使用 flex-1 占据剩余所有空间 */}

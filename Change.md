@@ -1,32 +1,17 @@
 ## 改动记录✨
-### 记录1
-- 更新Logo图标资源
-- 完善个人页面侧边栏导航功能
-- 调整项目目录结构
-- 清理未使用的SVG图片资源
-
-### 记录2 - 组件优化与功能整合
-- 优化组件目录结构与路由跳转逻辑
-- 统一登录界面样式，优化登录/登出体验
-- 改进侧边栏布局与图片上传弹窗功能
-- 优化个人页面CSS样式
-
-### 记录3 - 知识库功能
-- 新增知识库页面及相关组件
-- 实现知识库侧边栏和内容区域布局
-- 添加笔记上传弹窗组件
-
-### 记录4 - UI/UX优化
-- 优化导航栏样式和排版间距
-- 重构上传PDF按钮和创建笔记按钮组件
-- 提升组件复用性，减少代码冗余
-
-### 记录5 - 关联图功能与类型系统优化
-- 更新项目依赖，溯源树改名，新增关联图功能页面（ReactFlow实现）
-- 新增阅读页面上下文用于状态管理
-- 新增历史记录页面及其组件并复用（阅读与搜索页）
-- 新增整理types目录及部分TypeScript类型接口
-- 优化项目部分架构逻辑与结构
+### 总的最新记录 - 项目功能扩展与组件完善
+- 新增项目管理页面路由分组 `(projects)` 及相关页面
+- 新增 AI 代码页面完整组件（CodeAiChat、CodeFileExplorer、CodeLayout、CodeOutputPreview、CodePythonEditor）
+- 新增创新亮点页面组件（InnovationPage）
+- 新增 AI 文库页面组件（LiteratureReviewPage）
+- 新增项目管理页面组件（ProjectsPage、CreateProjectModal）
+- 新增 AI 写作页面完整组件（WritingAiChat、WritingFileExplorer、WritingLatexEditor、WritingLayout、WritingPdfPreview）
+- 新增共享编辑器布局组件（EditorLayout）
+- 完善知识库组件（新增 KnowledgeCardModal）
+- 完善关联图组件（新增 GraphNode）
+- 更新项目依赖（Next.js 升级至 16.2.1，新增 react-markdown、remark-gfm）
+- 新增项目 README.md 文档
+- 删减沉思相关板块
 
 
 ## 项目结构
@@ -41,6 +26,7 @@ ICP/
 ├── types/               # TypeScript 类型定义目录
 ├── .gitignore           # Git 忽略文件配置
 ├── Change.md            # 改动记录文档✨
+├── README.md            # 项目说明文档
 ├── eslint.config.mjs    # ESLint 配置
 ├── next.config.ts       # Next.js 配置
 ├── package-lock.json    # npm 依赖锁定文件
@@ -59,17 +45,20 @@ app/
 │   ├── (pages)/         # 主要功能页面
 │   │   ├── code/        # AI代码相关页面
 │   │   ├── drawing/     # AI绘图相关页面
-│   │   ├── idea/        # 亮点相关页面
+│   │   ├── idea/        # AI创新点相关页面✨
 │   │   ├── knowledge/   # 知识库相关页面
 │   │   ├── library/     # AI文库相关页面
 │   │   ├── reading/     # AI阅读相关页面✨
 │   │   ├── resources/   # 资源中心相关页面
-│   │   ├── thinking/    # 沉思相关页面
-│   │   ├── graph/       # 关联图相关页面（ReactFlow）✨
+│   │   ├── graph/       # 关联图相关页面（ReactFlow）
 │   │   └── writing/     # AI写作相关页面
 │   ├── private/         # 个人页面（学术搜索）
 │   │   └── page.tsx     # 个人页面首页✨
 │   └── layout.tsx       # 主要布局（左右结构）
+├── (projects)/          # 项目管理页面分组✨
+│   ├── projects/        # 项目管理页面
+│   │   └── page.tsx
+│   └── layout.tsx       # 项目管理布局
 ├── globals.css          # 全局样式
 └── layout.tsx           # 整体/根布局
 ```
@@ -97,6 +86,7 @@ components/
 │   ├── knowledge/          # 知识库相关组件
 │   │   ├── KnowledgeContent.tsx   # 知识库内容
 │   │   ├── KnowledgeSidebar.tsx   # 知识库侧边栏
+│   │   ├── KnowledgeCardModal.tsx  # 知识卡片弹窗✨
 │   │   └── NoteUploadModal.tsx    # 笔记上传弹窗
 │   ├── reading/         # AI阅读页面组件
 │   │   └── FileUploader.tsx  # 文件上传器
@@ -105,11 +95,33 @@ components/
 │   │   ├── ModeSelector.tsx     # 搜索模式选择器
 │   │   ├── ModelSelect.tsx      # 模型选择器
 │   │   └── SearchBox.tsx        # 搜索框
-│   └── graph/            # 关联图相关组件✨
-│       ├── FlowCanvas.tsx       # ReactFlow画布
-│       ├── SidebarLeft.tsx      # 左侧边栏
-│       ├── SidebarRight.tsx     # 右侧边栏
-│       └── SourceGraphContainer.tsx # 关联图容器
+│   ├── graph/            # 关联图相关组件✨
+│   │   ├── FlowCanvas.tsx       # ReactFlow画布
+│   │   ├── GraphNode.tsx         # 图节点组件✨
+│   │   ├── SidebarLeft.tsx      # 左侧边栏
+│   │   ├── SidebarRight.tsx     # 右侧边栏
+│   │   └── SourceGraphContainer.tsx # 关联图容器
+│   ├── code/             # AI代码页面组件✨
+│   │   ├── CodeAiChat.tsx       # 代码AI聊天
+│   │   ├── CodeFileExplorer.tsx  # 代码文件浏览器
+│   │   ├── CodeLayout.tsx        # 代码页面布局
+│   │   ├── CodeOutputPreview.tsx # 代码输出预览
+│   │   └── CodePythonEditor.tsx  # Python编辑器
+│   ├── writing/          # AI写作页面组件✨
+│   │   ├── WritingAiChat.tsx     # 写作AI聊天
+│   │   ├── WritingFileExplorer.tsx # 写作文件浏览器
+│   │   ├── WritingLatexEditor.tsx # LaTeX编辑器
+│   │   ├── WritingLayout.tsx      # 写作页面布局
+│   │   └── WritingPdfPreview.tsx # PDF预览
+│   ├── idea/             # 亮点页面组件✨
+│   │   └── InnovationPage.tsx    # 创新页面
+│   ├── library/          # AI文库页面组件✨
+│   │   └── LiteratureReviewPage.tsx # 文献综述页面
+│   ├── projects/         # 项目管理页面组件✨
+│   │   ├── ProjectsPage.tsx       # 项目页面
+│   │   └── CreateProjectModal.tsx # 创建项目弹窗
+│   └── shared/           # 共享组件✨
+│       └── EditorLayout.tsx      # 编辑器布局
 └── private/             # 个人页面组件
     └── siderbar/        # 侧边栏相关组件
        ├── Sidebar.tsx       # 侧边栏主组件
@@ -153,15 +165,16 @@ public/
 /writing                # AI写作页
 /drawing                # AI绘图页
 /code                   # AI代码页
-/thinking               # 沉思页
 /idea                   # 亮点页
 /graph                  # 关联图页（ReactFlow可视化）
 /knowledge              # 知识库页
 /resources              # 资源中心页
+/projects               # 项目管理页✨
 ```
+
 ## 项目技术栈
 ### 核心框架
-- Next.js : 16.1.6（最新版本）
+- Next.js : 16.2.1（最新版本）
 - React : 19.2.3
 - React DOM : 19.2.3
 
@@ -172,6 +185,10 @@ public/
 
 ### 可视化组件
 - ReactFlow : 11.11.4（流程图/溯源树可视化）
+
+### Markdown 支持
+- react-markdown : 10.1.0（Markdown 渲染）
+- remark-gfm : 4.0.1（GFM 语法支持）
 
 ### 动画和图标
 - Framer Motion : 12.0.0（动画库）
