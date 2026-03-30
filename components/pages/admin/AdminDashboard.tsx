@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLayout } from '@/context/LayoutContext';
 import {
@@ -1032,14 +1032,145 @@ function OrchestrationEditor({
   onBack: () => void;
   onUpdate: (updates: Partial<AgentData>) => void;
 }) {
-  const { nodes, edges } = agent.workflow;
+  const NODE_W = 164;
+  const NODE_H = 68;
+  const CANVAS_W = 1800;
+  const CANVAS_H = 900;
+
+  const [nodes, setNodes] = useState<WorkflowNode[]>(() => agent.workflow.nodes.map(n => ({ ...n })));
+  const [edges, setEdges] = useState<WorkflowEdge[]>(() => agent.workflow.edges.map(e => ({ ...e })));
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedEdgeIdx, setSelectedEdgeIdx] = useState<number | null>(null);
+  const [dragging, setDragging] = useState<{ nodeId: string; offsetX: number; offsetY: number } | null>(null);
+  const [connecting, setConnecting] = useState<{ fromId: string } | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [editingLabel, setEditingLabel] = useState(false);
+  const [editLabelText, setEditLabelText] = useState('');
+  const [saved, setSaved] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
+  const connectingSourceNode = connecting ? nodes.find(n => n.id === connecting.fromId) ?? null : null;
+
+  const TYPE_LABELS: Record<WorkflowNode['type'], string> = {
+    start: '开始节点', llm: 'LLM 节点', tool: '工具节点',
+    condition: '条件分支', reply: '回复节点', knowledge: '知识库',
+  };
+  const NODE_DEFAULT_LABELS: Record<WorkflowNode['type'], string> = {
+    start: '开始', llm: 'LLM 处理', tool: '工具调用',
+    condition: '条件判断', reply: '输出回复', knowledge: '知识检索',
+  };
+
+  const getCanvasPos = useCallback((e: React.MouseEvent) => {
+    const el = containerRef.current;
+    if (!el) return { x: 0, y: 0 };
+    const rect = el.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left + el.scrollLeft,
+      y: e.clientY - rect.top + el.scrollTop,
+    };
+  }, []);
+
+  const handleNodeMouseDown = useCallback((e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation();
+    if (connecting) return;
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return;
+    const pos = getCanvasPos(e);
+    setDragging({ nodeId, offsetX: pos.x - node.x, offsetY: pos.y - node.y });
+    setSelectedNodeId(nodeId);
+    setSelectedEdgeIdx(null);
+    setEditingLabel(false);
+  }, [connecting, nodes, getCanvasPos]);
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    const pos = getCanvasPos(e);
+    setMousePos(pos);
+    if (!dragging) return;
+    setNodes(prev => prev.map(n =>
+      n.id === dragging.nodeId
+        ? { ...n, x: Math.max(0, Math.min(CANVAS_W - NODE_W, pos.x - dragging.offsetX)), y: Math.max(0, Math.min(CANVAS_H - NODE_H, pos.y - dragging.offsetY)) }
+        : n
+    ));
+  }, [dragging, getCanvasPos]);
+
+  const handleCanvasMouseUp = useCallback(() => { setDragging(null); }, []);
+
+  const handleCanvasClick = useCallback(() => {
+    if (dragging) return;
+    setSelectedNodeId(null);
+    setSelectedEdgeIdx(null);
+    setConnecting(null);
+    setEditingLabel(false);
+  }, [dragging]);
+
+  const handleOutputPortClick = useCallback((e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation();
+    setConnecting({ fromId: nodeId });
+    setSelectedNodeId(null);
+    setSelectedEdgeIdx(null);
+  }, []);
+
+  const handleInputPortClick = useCallback((e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation();
+    if (!connecting) return;
+    if (connecting.fromId === nodeId) { setConnecting(null); return; }
+    const exists = edges.some(ed => ed.from === connecting.fromId && ed.to === nodeId);
+    if (!exists) setEdges(prev => [...prev, { from: connecting.fromId, to: nodeId }]);
+    setConnecting(null);
+  }, [connecting, edges]);
+
+  const addNode = useCallback((type: WorkflowNode['type']) => {
+    const el = containerRef.current;
+    const cx = el ? el.scrollLeft + el.clientWidth / 2 : 400;
+    const cy = el ? el.scrollTop + el.clientHeight / 2 : 300;
+    const newNode: WorkflowNode = {
+      id: `n-${Date.now()}`,
+      type,
+      label: NODE_DEFAULT_LABELS[type],
+      x: Math.max(0, cx - NODE_W / 2 + (Math.random() - 0.5) * 120),
+      y: Math.max(0, cy - NODE_H / 2 + (Math.random() - 0.5) * 80),
+    };
+    setNodes(prev => [...prev, newNode]);
+    setSelectedNodeId(newNode.id);
+    setSelectedEdgeIdx(null);
+    setConnecting(null);
+  }, []);
+
+  const deleteNode = useCallback((nodeId: string) => {
+    setNodes(prev => prev.filter(n => n.id !== nodeId));
+    setEdges(prev => prev.filter(e => e.from !== nodeId && e.to !== nodeId));
+    setSelectedNodeId(null);
+  }, []);
+
+  const deleteEdge = useCallback((idx: number) => {
+    setEdges(prev => prev.filter((_, i) => i !== idx));
+    setSelectedEdgeIdx(null);
+  }, []);
+
+  const commitLabel = useCallback(() => {
+    if (!selectedNodeId) return;
+    setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, label: editLabelText } : n));
+    setEditingLabel(false);
+  }, [selectedNodeId, editLabelText]);
+
+  const changeNodeType = useCallback((type: WorkflowNode['type']) => {
+    if (!selectedNodeId) return;
+    setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, type } : n));
+  }, [selectedNodeId]);
+
+  const handleSave = useCallback(() => {
+    onUpdate({ workflow: { nodes, edges } });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+  }, [nodes, edges, onUpdate]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* 顶栏 */}
       <div className="shrink-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500">
+          <button onClick={onBack} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">
             <LeftOutlined style={{ fontSize: '12px' }} />
           </button>
           <div className="flex items-center gap-2.5">
@@ -1052,115 +1183,319 @@ function OrchestrationEditor({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-3 h-8 text-xs text-gray-600 hover:text-primary bg-gray-50 hover:bg-primary/5 rounded-lg transition-colors">
-            <PlayCircleOutlined style={{ fontSize: '12px' }} />
-            测试运行
-          </button>
-          <button className="flex items-center gap-1.5 px-4 h-8 text-xs text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm font-medium">
-            <SaveOutlined style={{ fontSize: '12px' }} />
-            保存
+        <div className="flex items-center gap-3">
+          {connecting && (
+            <span className="text-[11px] px-3 py-1.5 bg-blue-50 text-blue-500 rounded-full font-medium animate-pulse">
+              点击目标节点左侧端口完成连接 · ESC 取消
+            </span>
+          )}
+          <button
+            onClick={handleSave}
+            className={`flex items-center gap-1.5 px-4 h-8 text-xs rounded-lg shadow-sm font-medium transition-all ${
+              saved ? 'bg-emerald-500 text-white' : 'bg-primary text-white hover:bg-primary/90'
+            }`}
+          >
+            {saved ? <CheckCircleFilled style={{ fontSize: '12px' }} /> : <SaveOutlined style={{ fontSize: '12px' }} />}
+            {saved ? '已保存' : '保存'}
           </button>
         </div>
       </div>
 
-      {/* 编排画布 */}
-      <div className="flex-1 flex">
-        {/* 画布区 */}
-        <div className="flex-1 overflow-auto relative" style={{ background: 'radial-gradient(circle, #e5e7eb 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '1000px', minHeight: '400px' }}>
-            {/* 连线 */}
-            {edges.map((edge, i) => {
-              const fromNode = nodes.find(n => n.id === edge.from);
-              const toNode = nodes.find(n => n.id === edge.to);
-              if (!fromNode || !toNode) return null;
-              const x1 = fromNode.x + 80;
-              const y1 = fromNode.y + 30;
-              const x2 = toNode.x;
-              const y2 = toNode.y + 30;
-              const mx = (x1 + x2) / 2;
-              return (
-                <g key={i}>
-                  <path
-                    d={`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`}
-                    fill="none"
-                    stroke="#d1d5db"
-                    strokeWidth="2"
-                    strokeDasharray="6 3"
-                  />
-                  {/* 箭头 */}
-                  <circle cx={x2} cy={y2} r="3" fill="#d1d5db" />
-                  {edge.label && (
-                    <text x={mx} y={(y1 + y2) / 2 - 8} textAnchor="middle" className="text-[10px] fill-gray-400">
-                      {edge.label}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+      {/* 画布 + 右侧面板 */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* 画布容器 */}
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-auto relative select-none"
+          style={{
+            background: 'radial-gradient(circle, #cbd5e1 1.5px, transparent 1.5px)',
+            backgroundSize: '24px 24px',
+            cursor: connecting ? 'crosshair' : dragging ? 'grabbing' : 'default',
+          }}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
+          onClick={handleCanvasClick}
+        >
+          <div style={{ position: 'relative', width: CANVAS_W, height: CANVAS_H }}>
+            {/* SVG 连线层 */}
+            <svg
+              style={{ position: 'absolute', left: 0, top: 0, width: CANVAS_W, height: CANVAS_H, overflow: 'visible', zIndex: 1 }}
+            >
+              <defs>
+                <marker id="oa" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8" />
+                </marker>
+                <marker id="oa-sel" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#1a5c3a" />
+                </marker>
+                <marker id="oa-conn" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" />
+                </marker>
+              </defs>
 
-          {/* 节点 */}
-          <div className="relative" style={{ minWidth: '1000px', minHeight: '400px' }}>
+              {/* 已有连线 */}
+              {edges.map((edge, i) => {
+                const fromN = nodes.find(n => n.id === edge.from);
+                const toN = nodes.find(n => n.id === edge.to);
+                if (!fromN || !toN) return null;
+                const x1 = fromN.x + NODE_W + 10;
+                const y1 = fromN.y + NODE_H / 2;
+                const x2 = toN.x - 10;
+                const y2 = toN.y + NODE_H / 2;
+                const dx = Math.max(60, Math.abs(x2 - x1) * 0.5);
+                const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+                const isSel = selectedEdgeIdx === i;
+                const midX = (x1 + x2) / 2;
+                const midY = Math.min(y1, y2) - 14;
+                return (
+                  <g key={i}>
+                    {/* 宽透明命中区 */}
+                    <path
+                      d={d} fill="none" stroke="#000" strokeWidth="14"
+                      style={{ pointerEvents: 'all', cursor: 'pointer', opacity: 0 }}
+                      onClick={(e) => { e.stopPropagation(); setSelectedEdgeIdx(i); setSelectedNodeId(null); }}
+                    />
+                    {/* 可见路径 */}
+                    <path
+                      d={d} fill="none"
+                      stroke={isSel ? '#1a5c3a' : '#94a3b8'}
+                      strokeWidth={isSel ? 2.5 : 2}
+                      strokeDasharray={isSel ? undefined : '7 4'}
+                      markerEnd={isSel ? 'url(#oa-sel)' : 'url(#oa)'}
+                      style={{ pointerEvents: 'none' }}
+                    />
+                    {/* 标签 */}
+                    {edge.label && (
+                      <g style={{ pointerEvents: 'none' }}>
+                        <rect x={midX - 22} y={midY - 8} width={44} height={16} rx={4}
+                          fill="white" stroke={isSel ? '#1a5c3a' : '#e2e8f0'} strokeWidth="1" />
+                        <text x={midX} y={midY + 4} textAnchor="middle"
+                          style={{ fontSize: '9px', fill: isSel ? '#1a5c3a' : '#6b7280' }}>
+                          {edge.label}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* 连接中的预览线 */}
+              {connecting && connectingSourceNode && (
+                <path
+                  d={`M ${connectingSourceNode.x + NODE_W + 10} ${connectingSourceNode.y + NODE_H / 2} L ${mousePos.x} ${mousePos.y}`}
+                  fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3"
+                  markerEnd="url(#oa-conn)"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
+            </svg>
+
+            {/* 节点层 */}
             {nodes.map(node => {
-              const style = NODE_STYLES[node.type];
+              const st = NODE_STYLES[node.type];
+              const isSel = selectedNodeId === node.id;
               return (
                 <div
                   key={node.id}
-                  className="absolute group cursor-move"
-                  style={{ left: node.x, top: node.y }}
+                  style={{ position: 'absolute', left: node.x, top: node.y, width: NODE_W, height: NODE_H, zIndex: isSel ? 20 : 10 }}
+                  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                  onClick={(e) => { e.stopPropagation(); if (!connecting) { setSelectedNodeId(node.id); setSelectedEdgeIdx(null); } }}
                 >
+                  {/* 输入端口 */}
                   <div
-                    className="w-[160px] rounded-xl border-2 bg-white shadow-sm hover:shadow-md transition-all p-3"
-                    style={{ borderColor: `${style.color}40` }}
+                    className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 bg-white flex items-center justify-center transition-transform hover:scale-125"
+                    style={{
+                      borderColor: connecting ? '#3b82f6' : st.color,
+                      cursor: connecting ? 'crosshair' : 'default',
+                      boxShadow: connecting ? '0 0 0 4px rgba(59,130,246,0.18)' : 'none',
+                      zIndex: 30,
+                    }}
+                    onClick={(e) => handleInputPortClick(e, node.id)}
                   >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-xs"
-                        style={{ background: style.bg, color: style.color }}
-                      >
-                        {style.icon}
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: connecting ? '#3b82f6' : `${st.color}90` }} />
+                  </div>
+
+                  {/* 节点卡片 */}
+                  <div
+                    className="w-full h-full rounded-xl border-2 bg-white transition-all"
+                    style={{
+                      borderColor: isSel ? st.color : `${st.color}45`,
+                      boxShadow: isSel
+                        ? `0 0 0 3px ${st.color}20, 0 4px 16px rgba(0,0,0,0.1)`
+                        : '0 2px 8px rgba(0,0,0,0.06)',
+                      cursor: dragging?.nodeId === node.id ? 'grabbing' : 'grab',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs shrink-0" style={{ background: st.bg, color: st.color }}>
+                        {st.icon}
                       </div>
-                      <span className="text-[10px] font-medium" style={{ color: style.color }}>
-                        {node.type === 'start' ? '开始' :
-                         node.type === 'llm' ? 'LLM' :
-                         node.type === 'tool' ? '工具' :
-                         node.type === 'condition' ? '条件' :
-                         node.type === 'reply' ? '回复' : '知识库'}
+                      <span className="text-[10px] font-bold tracking-wider uppercase" style={{ color: st.color }}>
+                        {TYPE_LABELS[node.type].replace('节点', '').replace('分支', '').trim()}
                       </span>
                     </div>
-                    <p className="text-xs font-medium text-gray-700 truncate">{node.label}</p>
+                    <div className="px-3 pb-2.5">
+                      <p className="text-xs font-semibold text-gray-700 truncate">{node.label}</p>
+                    </div>
                   </div>
-                  {/* 连接点 */}
-                  <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-gray-300 bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-gray-300 bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* 输出端口 */}
+                  <div
+                    className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 bg-white flex items-center justify-center transition-transform hover:scale-125"
+                    style={{
+                      borderColor: st.color,
+                      cursor: 'crosshair',
+                      boxShadow: connecting?.fromId === node.id ? `0 0 0 4px ${st.color}30` : 'none',
+                      zIndex: 30,
+                    }}
+                    title="点击开始连线"
+                    onClick={(e) => handleOutputPortClick(e, node.id)}
+                  >
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: st.color }} />
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* 右侧节点面板 */}
-        <div className="w-52 shrink-0 bg-white border-l border-gray-200 p-4 overflow-auto">
-          <p className="text-xs font-bold text-gray-700 mb-3">添加节点</p>
-          <div className="space-y-2">
-            {Object.entries(NODE_STYLES).map(([type, style]) => (
-              <button
-                key={type}
-                className="w-full flex items-center gap-2.5 p-2.5 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left"
-              >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style={{ background: style.bg, color: style.color }}>
-                  {style.icon}
+        {/* 右侧属性/添加面板 */}
+        <div className="w-60 shrink-0 bg-white border-l border-gray-200 flex flex-col overflow-hidden">
+          {selectedNode ? (
+            /* 节点属性面板 */
+            <div className="flex-1 overflow-auto">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-100">
+                <p className="text-xs font-bold text-gray-700">节点属性</p>
+                <button
+                  onClick={() => deleteNode(selectedNode.id)}
+                  className="flex items-center gap-1 text-[10px] px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <DeleteOutlined style={{ fontSize: '10px' }} /> 删除节点
+                </button>
+              </div>
+              <div className="p-4 space-y-4">
+                {/* 节点名称 */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">节点名称</label>
+                  {editingLabel ? (
+                    <input
+                      autoFocus
+                      value={editLabelText}
+                      onChange={e => setEditLabelText(e.target.value)}
+                      onBlur={commitLabel}
+                      onKeyDown={e => { if (e.key === 'Enter') commitLabel(); if (e.key === 'Escape') setEditingLabel(false); }}
+                      className="w-full h-8 px-2.5 text-xs bg-white border-2 border-primary/40 rounded-lg outline-none focus:ring-2 focus:ring-primary/15"
+                    />
+                  ) : (
+                    <button
+                      className="w-full flex items-center justify-between h-8 px-2.5 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+                      onClick={() => { setEditLabelText(selectedNode.label); setEditingLabel(true); }}
+                    >
+                      <span className="truncate">{selectedNode.label}</span>
+                      <EditOutlined style={{ fontSize: '10px' }} className="text-gray-400 group-hover:text-primary shrink-0 ml-1" />
+                    </button>
+                  )}
                 </div>
-                <span className="text-[11px] font-medium text-gray-700 capitalize">
-                  {type === 'start' ? '开始节点' :
-                   type === 'llm' ? 'LLM 节点' :
-                   type === 'tool' ? '工具节点' :
-                   type === 'condition' ? '条件分支' :
-                   type === 'reply' ? '回复节点' : '知识库'}
-                </span>
-              </button>
-            ))}
+
+                {/* 节点类型 */}
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">节点类型</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(Object.keys(NODE_STYLES) as WorkflowNode['type'][]).map(t => {
+                      const st = NODE_STYLES[t];
+                      const active = selectedNode.type === t;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => changeNodeType(t)}
+                          className="flex items-center gap-1.5 p-2 rounded-lg border-2 transition-all text-left"
+                          style={{
+                            borderColor: active ? st.color : '#e5e7eb',
+                            background: active ? st.bg : 'transparent',
+                          }}
+                        >
+                          <span style={{ fontSize: '12px', color: st.color }}>{st.icon}</span>
+                          <span className="text-[9px] font-semibold leading-tight" style={{ color: active ? st.color : '#6b7280' }}>
+                            {TYPE_LABELS[t]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : selectedEdgeIdx !== null && edges[selectedEdgeIdx] ? (
+            /* 连线属性面板 */
+            <div className="flex-1 overflow-auto">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-100">
+                <p className="text-xs font-bold text-gray-700">连线属性</p>
+                <button
+                  onClick={() => deleteEdge(selectedEdgeIdx)}
+                  className="flex items-center gap-1 text-[10px] px-2 py-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <DeleteOutlined style={{ fontSize: '10px' }} /> 删除连线
+                </button>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">连线标签</label>
+                  <input
+                    value={edges[selectedEdgeIdx]?.label ?? ''}
+                    onChange={e => setEdges(prev => prev.map((ed, i) => i === selectedEdgeIdx ? { ...ed, label: e.target.value || undefined } : ed))}
+                    placeholder="如：成功 / 失败 / 是 / 否..."
+                    className="w-full h-8 px-2.5 text-xs bg-white border border-gray-200 rounded-lg outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
+                  />
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl space-y-1.5">
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">路径</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] px-2 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-medium truncate flex-1">
+                      {nodes.find(n => n.id === edges[selectedEdgeIdx]?.from)?.label ?? '—'}
+                    </span>
+                    <span className="text-gray-400 text-xs shrink-0">→</span>
+                    <span className="text-[10px] px-2 py-1 bg-white border border-gray-200 rounded-lg text-gray-700 font-medium truncate flex-1">
+                      {nodes.find(n => n.id === edges[selectedEdgeIdx]?.to)?.label ?? '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* 添加节点面板 */
+            <div className="flex-1 overflow-auto">
+              <div className="px-4 pt-4 pb-2 border-b border-gray-100">
+                <p className="text-xs font-bold text-gray-700">添加节点</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">点击添加到画布中央</p>
+              </div>
+              <div className="p-3 space-y-1.5">
+                {(Object.entries(NODE_STYLES) as [WorkflowNode['type'], typeof NODE_STYLES[WorkflowNode['type']]][]).map(([type, st]) => (
+                  <button
+                    key={type}
+                    onClick={() => addNode(type)}
+                    className="w-full flex items-center gap-2.5 p-2.5 rounded-xl border border-gray-200 hover:border-primary/30 hover:bg-primary/5 transition-all text-left group"
+                  >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0" style={{ background: st.bg, color: st.color }}>
+                      {st.icon}
+                    </div>
+                    <span className="text-[11px] font-medium text-gray-600 group-hover:text-primary transition-colors">
+                      {TYPE_LABELS[type]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 操作提示 */}
+          <div className="shrink-0 p-3 border-t border-gray-100 bg-gray-50/50">
+            <div className="space-y-0.5 text-[10px] text-gray-400 leading-relaxed">
+              <p>· 拖拽节点可自由移动</p>
+              <p>· 点击右侧 <span className="text-gray-500 font-medium">●</span> 开始连线</p>
+              <p>· 点击连线可编辑标签/删除</p>
+              <p>· 点击节点查看/修改属性</p>
+            </div>
           </div>
         </div>
       </div>
